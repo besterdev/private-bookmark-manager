@@ -9,7 +9,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/api-spec-and-auth` - Auth0 API guard and current-user endpoint
 - [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [x] `feat/backend-collections`
-- [ ] `feat/backend-bookmarks`
+- [x] `feat/backend-bookmarks`
 - [ ] `feat/frontend-shell-and-auth`
 - [ ] `feat/frontend-collections`
 - [ ] `feat/frontend-bookmarks`
@@ -64,15 +64,15 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Backend - bookmarks
 
-- [ ] Implement bookmark create endpoint
-- [ ] Implement bookmark list endpoint
-- [ ] Implement bookmark detail endpoint
-- [ ] Implement bookmark PUT endpoint
-- [ ] Implement bookmark PATCH endpoint
-- [ ] Implement bookmark delete endpoint
-- [ ] Implement bookmark filtering by collection
-- [ ] Implement `GET /collections/:id/bookmarks`
-- [ ] Enforce owner-scoped bookmark queries and mutations
+- [x] Implement bookmark create endpoint
+- [x] Implement bookmark list endpoint
+- [x] Implement bookmark detail endpoint
+- [x] Implement bookmark PUT endpoint
+- [x] Implement bookmark PATCH endpoint
+- [x] Implement bookmark delete endpoint
+- [x] Implement bookmark filtering by collection
+- [x] Implement `GET /collections/:id/bookmarks`
+- [x] Enforce owner-scoped bookmark queries and mutations
 
 ## Frontend - authentication and shared UI
 
@@ -105,20 +105,20 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [ ] Test JWT validation and authentication guard
 - [ ] Test request validation and common errors
 - [x] Test collection service CRUD logic
-- [ ] Test bookmark service CRUD and filter logic
+- [x] Test bookmark service CRUD and filter logic
 - [x] Test collection deletion behaviour
 - [x] Test owner-scoped collection access
-- [ ] Test owner-scoped bookmark access
+- [x] Test owner-scoped bookmark access
 - [ ] Test frontend forms and API state handling
 
 ## End-to-end tests
 
 - [x] Verify an unauthenticated user cannot use protected routes
 - [x] Verify authenticated collection CRUD flow
-- [ ] Verify authenticated bookmark CRUD and filtering flow
+- [x] Verify authenticated bookmark CRUD and filtering flow
 - [x] Verify User A cannot list, read, update, or delete User B's collection
-- [ ] Verify User A cannot list, read, update, or delete User B's bookmark
-- [ ] Verify User A cannot access User B's collection bookmarks endpoint
+- [x] Verify User A cannot list, read, update, or delete User B's bookmark
+- [x] Verify User A cannot access User B's collection bookmarks endpoint
 
 ## Submission and delivery
 
