@@ -2,6 +2,21 @@
 
 Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verification.
 
+## Delivery branches
+
+- [x] Commit documentation baseline to `main`
+- [-] `chore/project-setup` - workspace scaffold in `.worktrees/project-setup`
+- [ ] `feat/api-spec-and-auth`
+- [ ] `feat/database-prisma`
+- [ ] `feat/backend-collections`
+- [ ] `feat/backend-bookmarks`
+- [ ] `feat/frontend-shell-and-auth`
+- [ ] `feat/frontend-collections`
+- [ ] `feat/frontend-bookmarks`
+- [ ] `test/authorization-integration`
+- [ ] `test/private-bookmark-e2e`
+- [ ] `docs/submission-evidence`
+
 ## Project setup
 
 - [x] Create `AGENTS.md` with project rules, target structure, commands, and workflow
