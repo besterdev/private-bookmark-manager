@@ -7,7 +7,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Commit documentation baseline to `main`
 - [x] `chore/project-setup` - combined frontend and backend workspace scaffold in `.worktrees/project-setup`
 - [ ] `feat/api-spec-and-auth`
-- [ ] `feat/database-prisma`
+- [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [ ] `feat/backend-collections`
 - [ ] `feat/backend-bookmarks`
 - [ ] `feat/frontend-shell-and-auth`
@@ -47,9 +47,9 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [ ] Configure Auth0 OIDC Authorization Code Flow with PKCE (S256)
 - [ ] Implement JWT validation using issuer, audience, signature, expiry, algorithm, and JWKS
 - [ ] Add authentication guard to protected API routes
-- [ ] Create Prisma schema for users, collections, and bookmarks
-- [ ] Create database migration
-- [ ] Add seed data for at least two users
+- [x] Create Prisma schema for users, collections, and bookmarks
+- [x] Create database migration
+- [x] Add seed data for at least two users
 - [ ] Implement `GET /me`
 
 ## Backend - collections
@@ -132,7 +132,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Optional bonuses
 
-- [ ] Add Docker configuration
+- [x] Add Docker configuration
 - [ ] Add CI pipeline
 - [ ] Add `/all` page for collections with embedded bookmarks
 - [ ] Add full-text search for bookmark titles and notes
