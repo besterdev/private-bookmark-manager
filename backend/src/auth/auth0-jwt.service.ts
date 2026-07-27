@@ -8,12 +8,11 @@ type JoseModule = typeof import('jose');
 export class Auth0JwtService {
   private readonly issuer = requiredEnvironmentValue('AUTH0_ISSUER_URL');
   private readonly audience = requiredEnvironmentValue('AUTH0_AUDIENCE');
-  private readonly jose: Promise<JoseModule> = import('jose');
   private remoteJwks?: ReturnType<JoseModule['createRemoteJWKSet']>;
 
   async verifyAccessToken(token: string): Promise<VerifiedAuth0Claims> {
     try {
-      const { createRemoteJWKSet, jwtVerify } = await this.jose;
+      const { createRemoteJWKSet, jwtVerify } = await import('jose');
       const verifiedToken = await jwtVerify(token, this.getRemoteJwks(createRemoteJWKSet), {
         issuer: this.issuer,
         audience: this.audience,
