@@ -1,0 +1,123 @@
+# Private Bookmark Manager - Task Checklist
+
+Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verification.
+
+## Project setup
+
+- [x] Create `AGENTS.md` with project rules, target structure, commands, and workflow
+- [ ] Initialize Bun workspace and commit `bun.lock`
+- [ ] Create NestJS backend in `backend/`
+- [ ] Create Vite React frontend in `frontend/`
+- [ ] Add root scripts for dev, lint, typecheck, test, E2E test, and build
+- [ ] Create `.env.example` files without secrets
+- [ ] Add `.agent/` reusable agent capability
+
+## API specification and decisions
+
+- [ ] Inspect Auth0 discovery document and JWKS
+- [ ] Decide which Bearer token the API accepts and document the security rationale
+- [ ] Create `API_DESIGN.md`
+- [ ] Define `/me` API contract
+- [ ] Define Collections CRUD API contract
+- [ ] Define Bookmarks CRUD and filtering API contract
+- [ ] Define `GET /collections/:id/bookmarks` contract
+- [ ] Define common error response and HTTP status-code standards
+- [ ] Define resource ownership and 404 behaviour for inaccessible resources
+- [ ] Create `DECISIONS.md`
+- [ ] Decide collection deletion behaviour
+- [ ] Decide whether and how collection sharing is supported
+
+## Backend - authentication and data
+
+- [ ] Configure Auth0 OIDC Authorization Code Flow with PKCE (S256)
+- [ ] Implement JWT validation using issuer, audience, signature, expiry, algorithm, and JWKS
+- [ ] Add authentication guard to protected API routes
+- [ ] Create Prisma schema for users, collections, and bookmarks
+- [ ] Create database migration
+- [ ] Add seed data for at least two users
+- [ ] Implement `GET /me`
+
+## Backend - collections
+
+- [ ] Implement collection create endpoint
+- [ ] Implement collection list endpoint
+- [ ] Implement collection detail endpoint
+- [ ] Implement collection PUT endpoint
+- [ ] Implement collection PATCH endpoint
+- [ ] Implement collection delete endpoint
+- [ ] Enforce owner-scoped collection queries and mutations
+
+## Backend - bookmarks
+
+- [ ] Implement bookmark create endpoint
+- [ ] Implement bookmark list endpoint
+- [ ] Implement bookmark detail endpoint
+- [ ] Implement bookmark PUT endpoint
+- [ ] Implement bookmark PATCH endpoint
+- [ ] Implement bookmark delete endpoint
+- [ ] Implement bookmark filtering by collection
+- [ ] Implement `GET /collections/:id/bookmarks`
+- [ ] Enforce owner-scoped bookmark queries and mutations
+
+## Frontend - authentication and shared UI
+
+- [ ] Configure React Router and MUI
+- [ ] Implement Auth0 login flow
+- [ ] Implement callback handling
+- [ ] Implement logout flow
+- [ ] Implement protected routes
+- [ ] Create authenticated API client
+- [ ] Add shared loading, empty, validation, and error states
+
+## Frontend - collections
+
+- [ ] Build collections list page
+- [ ] Build collection detail view
+- [ ] Build collection create flow
+- [ ] Build collection delete flow
+- [ ] Show bookmarks belonging to a selected collection
+
+## Frontend - bookmarks
+
+- [ ] Build bookmarks list page
+- [ ] Build bookmark detail view
+- [ ] Build bookmark create flow
+- [ ] Build bookmark delete flow
+- [ ] Build filter-by-collection control
+
+## Unit and integration tests
+
+- [ ] Test JWT validation and authentication guard
+- [ ] Test request validation and common errors
+- [ ] Test collection service CRUD logic
+- [ ] Test bookmark service CRUD and filter logic
+- [ ] Test collection deletion behaviour
+- [ ] Test owner-scoped collection access
+- [ ] Test owner-scoped bookmark access
+- [ ] Test frontend forms and API state handling
+
+## End-to-end tests
+
+- [ ] Verify an unauthenticated user cannot use protected routes
+- [ ] Verify authenticated collection CRUD flow
+- [ ] Verify authenticated bookmark CRUD and filtering flow
+- [ ] Verify User A cannot list, read, update, or delete User B's collection
+- [ ] Verify User A cannot list, read, update, or delete User B's bookmark
+- [ ] Verify User A cannot access User B's collection bookmarks endpoint
+
+## Submission and delivery
+
+- [ ] Create `AI_WORKFLOW.md`
+- [ ] Save real prompt and agent session logs in `transcripts/` with secrets redacted
+- [ ] Create `README.md` with setup, run, and test instructions
+- [ ] Document completed and skipped work in README
+- [ ] Verify API documentation matches implementation and tests
+- [ ] Run lint, typecheck, unit/integration tests, E2E tests, and production builds
+- [ ] Review commit history for meaningful incremental commits
+
+## Optional bonuses
+
+- [ ] Add Docker configuration
+- [ ] Add CI pipeline
+- [ ] Add `/all` page for collections with embedded bookmarks
+- [ ] Add full-text search for bookmark titles and notes

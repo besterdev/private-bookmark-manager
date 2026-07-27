@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Bookmark Manager - Design System</title>
+    <style>
+      :root {
+        --smalt: #003399;
+        --smalt-dark: #002570;
+        --orange: #ff6e00;
+        --orange-dark: #cc5800;
+        --mine: #3f3f3f;
+        --muted: #666666;
+        --canvas: #f7f8fc;
+        --paper: #ffffff;
+        --line: #e5e7eb;
+        --danger: #c62828;
+        --radius-control: 10px;
+        --radius-card: 12px;
+        --shadow-card: 0 2px 10px rgba(17, 24, 39, 0.06);
+        --display: Manrope, "Avenir Next", "Segoe UI", sans-serif;
+        --body: "Source Sans 3", "Avenir Next", "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--mine);
+        background: var(--canvas);
+        font-family: var(--body);
+        line-height: 1.45;
+      }
+
+      .topline {
+        height: 6px;
+        background: linear-gradient(90deg, var(--smalt) 0 72%, var(--orange) 72% 100%);
+      }
+      .hero {
+        padding: 48px clamp(24px, 7vw, 96px) 56px;
+        color: white;
+        background: var(--smalt);
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        right: -130px;
+        top: -235px;
+        border: 44px solid rgba(255, 255, 255, .12);
+        border-radius: 50%;
+      }
+      .eyebrow, .section-label {
+        margin: 0 0 10px;
+        color: var(--orange);
+        font: 700 12px/1 var(--display);
+        letter-spacing: .13em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3 { font-family: var(--display); margin: 0; }
+      h1 { max-width: 740px; font-size: clamp(34px, 6vw, 64px); line-height: 1.05; letter-spacing: -.045em; }
+      .hero p:last-child { max-width: 660px; margin: 20px 0 0; font-size: 18px; opacity: .84; }
+
+      .layout { max-width: 1360px; margin: -22px auto 0; padding: 0 24px 64px; position: relative; }
+      .side-index {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-card);
+        background: rgba(255,255,255,.96);
+        box-shadow: var(--shadow-card);
+      }
+      .side-index a { color: var(--smalt); font-weight: 700; text-decoration: none; padding: 8px 10px; border-radius: 7px; }
+      .side-index a:hover, .side-index a:focus-visible { outline: 0; background: #eef2ff; }
+      section { padding-top: 64px; }
+      .section-title { font-size: 28px; letter-spacing: -.03em; margin-bottom: 8px; }
+      .lead { margin: 0; color: var(--muted); font-size: 17px; }
+      .panel {
+        margin-top: 24px;
+        padding: clamp(20px, 3vw, 32px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-card);
+        background: var(--paper);
+        box-shadow: var(--shadow-card);
+      }
+
+      .swatches { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 14px; }
+      .swatch { min-height: 165px; padding: 16px; border-radius: 10px; display: flex; flex-direction: column; justify-content: flex-end; font-family: var(--display); font-weight: 700; }
+      .swatch small { margin-top: 3px; font-family: var(--body); font-weight: 600; opacity: .78; }
+      .smalt { background: var(--smalt); color: white; }
+      .orange { background: var(--orange); color: #252525; }
+      .mine { background: var(--mine); color: white; }
+      .canvas { background: var(--canvas); color: var(--mine); border: 1px solid var(--line); }
+      .paper { background: white; color: var(--mine); border: 1px solid var(--line); }
+
+      .type-grid { display: grid; gap: 22px; }
+      .type-row { display: grid; grid-template-columns: 150px 1fr; align-items: baseline; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+      .type-row:last-child { border: 0; padding: 0; }
+      .type-token { color: var(--muted); font: 700 12px/1.2 var(--display); letter-spacing: .1em; text-transform: uppercase; }
+      .sample-h1 { font: 700 clamp(28px, 4vw, 42px)/1.1 var(--display); letter-spacing: -.04em; }
+      .sample-h2 { font: 700 28px/1.2 var(--display); letter-spacing: -.03em; }
+      .sample-title { font: 600 18px/1.4 var(--body); }
+      .sample-body { font-size: 15px; }
+      .sample-caption { font: 600 12px/1.4 var(--body); color: var(--muted); letter-spacing: .03em; }
+
+      .component-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 22px; }
+      .workspace-demo { overflow: hidden; padding: 0; }
+      .demo-shell { display: grid; grid-template-columns: 190px 1fr; min-height: 470px; background: var(--canvas); }
+      .demo-nav { padding: 20px 12px; background: white; border-right: 1px solid var(--line); }
+      .brand { display: block; margin: 0 8px 28px; color: var(--smalt); font: 800 14px/1.1 var(--display); letter-spacing: -.02em; }
+      .nav-group { margin: 22px 0 8px; padding: 0 8px; color: var(--muted); font: 700 10px/1 var(--display); letter-spacing: .11em; text-transform: uppercase; }
+      .nav-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; color: var(--mine); border-radius: 8px; text-decoration: none; font-size: 14px; }
+      .nav-item.is-active { color: white; background: var(--smalt); font-weight: 700; }
+      .demo-main { padding: 24px; }
+      .demo-toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 22px; }
+      .demo-toolbar h3 { font-size: 23px; letter-spacing: -.03em; }
+      button, input, select { font: inherit; }
+      .button { border: 0; border-radius: var(--radius-control); padding: 10px 14px; cursor: pointer; font: 700 13px/1 var(--display); }
+      .button-primary { color: white; background: var(--orange); box-shadow: 0 4px 12px rgba(255, 110, 0, .22); }
+      .button-primary:hover { background: var(--orange-dark); }
+      .button-outline { color: var(--smalt); background: white; border: 1px solid var(--smalt); }
+      .button-danger { color: var(--danger); background: #fff4f4; border: 1px solid #f5c2c2; }
+      .search { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); background: white; outline: 0; }
+      .search:focus { border-color: var(--smalt); box-shadow: 0 0 0 3px rgba(0, 51, 153, .14); }
+      .bookmark-card { margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-card); background: white; box-shadow: var(--shadow-card); }
+      .card-top { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+      .favicon { display: grid; place-items: center; width: 26px; height: 26px; color: white; background: var(--smalt); border-radius: 7px; font: 700 12px var(--display); }
+      .bookmark-card h4 { margin: 18px 0 4px; font: 600 17px/1.3 var(--body); }
+      .host { color: var(--smalt); font-size: 13px; text-decoration: none; }
+      .chip { display: inline-block; margin-top: 14px; padding: 4px 8px; border-radius: 999px; color: var(--smalt); background: #eaf0ff; font: 700 11px/1 var(--display); }
+      .bookmark-card p { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+      .component-list { display: grid; gap: 12px; }
+      .component-item { padding: 15px; border: 1px solid var(--line); border-radius: 10px; }
+      .component-item strong { display: block; font-family: var(--display); }
+      .component-item span { color: var(--muted); font-size: 13px; }
+      .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0; }
+      .field-row { display: grid; grid-template-columns: 1fr 150px; gap: 10px; }
+      select { padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-control); background: white; }
+
+      .html-reference { margin: 0; padding: 20px; overflow-x: auto; color: #e6edf3; background: #171a21; border-radius: 10px; font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .html-reference code { color: inherit; }
+      .note { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+      :focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+      @media (max-width: 900px) { .swatches { grid-template-columns: repeat(3, 1fr); } .component-grid { grid-template-columns: 1fr; } }
+      @media (max-width: 620px) {
+        .hero { padding-top: 36px; }
+        .layout { padding-inline: 16px; }
+        .swatches { grid-template-columns: repeat(2, 1fr); }
+        .type-row { grid-template-columns: 1fr; gap: 7px; }
+        .demo-shell { grid-template-columns: 1fr; }
+        .demo-nav { display: none; }
+        .demo-toolbar { align-items: flex-start; flex-direction: column; }
+        .field-row { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topline"></div>
+    <header class="hero">
+      <p class="eyebrow">Private Bookmark Manager</p>
+      <h1>A light workspace for a focused reading life.</h1>
+      <p>Raindrop-inspired information density, with a purposeful Smalt navigation anchor and a single Blaze Orange action.</p>
+    </header>
+
+    <main class="layout">
+      <nav class="side-index" aria-label="Design system sections">
+        <a href="#colour">Colour</a><a href="#type">Typography</a><a href="#components">Components</a><a href="#html">HTML</a>
+      </nav>
+
+      <section id="colour">
+        <p class="section-label">01 / Colour</p>
+        <h2 class="section-title">A precise, private palette.</h2>
+        <p class="lead">Strong colour is reserved for navigation and intent; content stays calm and readable.</p>
+        <div class="panel"><div class="swatches">
+          <div class="swatch smalt">Smalt<small>#003399 / primary</small></div>
+          <div class="swatch orange">Blaze Orange<small>#FF6E00 / CTA</small></div>
+          <div class="swatch mine">Mine Shaft<small>#3F3F3F / text</small></div>
+          <div class="swatch canvas">Workspace<small>#F7F8FC / canvas</small></div>
+          <div class="swatch paper">Paper<small>#FFFFFF / surface</small></div>
+        </div></div>
+      </section>
+
+      <section id="type">
+        <p class="section-label">02 / Typography</p>
+        <h2 class="section-title">Clear hierarchy for rapid scanning.</h2>
+        <div class="panel type-grid">
+          <div class="type-row"><span class="type-token">H1 / Manrope 700</span><span class="sample-h1">All Bookmarks</span></div>
+          <div class="type-row"><span class="type-token">H2 / Manrope 700</span><span class="sample-h2">Engineering Reading</span></div>
+          <div class="type-row"><span class="type-token">Title / Source Sans 3 600</span><span class="sample-title">Designing reliable API contracts</span></div>
+          <div class="type-row"><span class="type-token">Body / Source Sans 3 400</span><span class="sample-body">A compact description stays readable in dense bookmark cards and supports fast selection.</span></div>
+          <div class="type-row"><span class="type-token">Caption / Source Sans 3 600</span><span class="sample-caption">EXAMPLE.COM · SAVED TODAY</span></div>
+        </div>
+      </section>
+
+      <section id="components">
+        <p class="section-label">03 / Components</p>
+        <h2 class="section-title">MUI primitives, composed for the workflow.</h2>
+        <div class="component-grid">
+          <div class="panel workspace-demo"><div class="demo-shell">
+            <aside class="demo-nav" aria-label="Collections preview"><span class="brand">PRIVATE<br />BOOKMARKS</span><a class="nav-item is-active" href="#components">All Bookmarks <span>24</span></a><a class="nav-item" href="#components">Unsorted <span>4</span></a><p class="nav-group">Collections</p><a class="nav-item" href="#components">Engineering <span>12</span></a><a class="nav-item" href="#components">Product <span>8</span></a></aside>
+            <div class="demo-main"><div class="demo-toolbar"><div><h3>All Bookmarks</h3><span class="sample-caption">24 private bookmarks</span></div><button class="button button-primary" type="button">+ Add bookmark</button></div><div class="field-row"><input class="search" aria-label="Search bookmarks" placeholder="Search bookmarks" /><select aria-label="Filter by collection"><option>All collections</option><option>Engineering</option></select></div><article class="bookmark-card"><div class="card-top"><span class="favicon">A</span><button type="button" class="button button-outline" aria-label="Bookmark actions">•••</button></div><h4>Designing reliable APIs</h4><a class="host" href="#components">example.com</a><br /><span class="chip">Engineering</span><p>A practical guide to predictable contracts and error handling.</p></article></div>
+          </div></div>
+          <div class="panel"><div class="component-list"><div class="component-item"><strong>Drawer</strong><span>264px desktop navigation; temporary on mobile.</span></div><div class="component-item"><strong>Card + Chip</strong><span>Bookmark identity, metadata, notes, and collection context.</span></div><div class="component-item"><strong>Dialog + Alert</strong><span>Safe create/edit/delete flows and API feedback.</span></div></div><div class="button-row"><button class="button button-primary" type="button">Add bookmark</button><button class="button button-outline" type="button">Edit collection</button><button class="button button-danger" type="button">Delete</button></div><p class="note">Orange is for creation only. Destructive actions use the semantic error colour.</p></div>
+        </div>
+      </section>
+
+      <section id="html">
+        <p class="section-label">04 / Semantic HTML</p>
+        <h2 class="section-title">Blueprint for the React and MUI implementation.</h2>
+        <div class="panel"><pre class="html-reference"><code>&lt;div class="app-shell"&gt;
+  &lt;aside aria-label="Bookmark collections"&gt;...&lt;/aside&gt;
+  &lt;main class="workspace"&gt;
+    &lt;header class="toolbar"&gt;
+      &lt;h1&gt;All Bookmarks&lt;/h1&gt;
+      &lt;input type="search" aria-label="Search bookmarks" /&gt;
+      &lt;button type="button"&gt;Add bookmark&lt;/button&gt;
+    &lt;/header&gt;
+    &lt;section aria-labelledby="bookmark-library-title"&gt;
+      &lt;h2 id="bookmark-library-title"&gt;Bookmark library&lt;/h2&gt;
+      &lt;article class="bookmark-card"&gt;...&lt;/article&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/div&gt;</code></pre><p class="note">Use MUI components in production. This semantic HTML is a structural reference, not a replacement for accessible MUI primitives.</p></div>
+      </section>
+    </main>
+  </body>
+</html>
