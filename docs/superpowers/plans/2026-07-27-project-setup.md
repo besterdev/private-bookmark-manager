@@ -104,7 +104,7 @@ git commit -m "🎉 chore: initialize bun workspace"
 
 **Produces:** A Vite app with MUI design tokens and a visible `Private Bookmark Manager` heading.
 
-- [ ] **Step 1: Create the application and install required dependencies**
+- [x] **Step 1: Create the application and install required dependencies**
 
 Run:
 
@@ -114,7 +114,7 @@ bun --cwd frontend add react-router @mui/material @mui/icons-material @emotion/r
 bun --cwd frontend add -d vitest @testing-library/react @testing-library/jest-dom jsdom
 ```
 
-- [ ] **Step 2: Write the failing frontend smoke test**
+- [x] **Step 2: Write the failing frontend smoke test**
 
 Create `frontend/src/App.test.tsx`:
 
@@ -136,7 +136,7 @@ bun --cwd frontend run test
 
 Expected: FAIL until the application shell and test configuration are added.
 
-- [ ] **Step 3: Implement the minimal design-system-aware app shell**
+- [x] **Step 3: Implement the minimal design-system-aware app shell**
 
 Create `frontend/src/App.tsx`:
 
@@ -161,7 +161,7 @@ export default function App() {
 
 Configure Vitest with `environment: 'jsdom'`, `setupFiles: ['./src/test/setup.ts']`, and import `@testing-library/jest-dom/vitest` from the setup file. Set package scripts to `vite`, `tsc -b && vite build`, `tsc -b --pretty false`, and `vitest run` for development, build, typecheck, and tests.
 
-- [ ] **Step 4: Verify and commit frontend**
+- [x] **Step 4: Verify frontend as part of the combined setup commit**
 
 Run:
 
@@ -174,8 +174,8 @@ bun --cwd frontend run build
 Expected: all commands exit with code 0.
 
 ```bash
-git add frontend bun.lock
-git commit -m "✨ feat: scaffold react frontend"
+git add frontend backend bun.lock
+git commit -m "🎉 chore: scaffold frontend and backend"
 ```
 
 ### Task 3: Scaffold the NestJS backend
@@ -188,7 +188,7 @@ git commit -m "✨ feat: scaffold react frontend"
 
 **Produces:** A NestJS API on port `3001` with `GET /healthz` returning `{ status: 'ok' }`.
 
-- [ ] **Step 1: Create the backend and install validation prerequisites**
+- [x] **Step 1: Create the backend and install validation prerequisites**
 
 Run:
 
@@ -197,7 +197,7 @@ bunx @nestjs/cli new backend --package-manager bun --skip-git
 bun --cwd backend add @nestjs/config class-validator class-transformer
 ```
 
-- [ ] **Step 2: Write the failing health unit test**
+- [x] **Step 2: Write the failing health unit test**
 
 Create `backend/src/app.controller.spec.ts`:
 
@@ -222,7 +222,7 @@ node ./backend/node_modules/jest/bin/jest.js ./backend/src/app.controller.spec.t
 
 Expected: FAIL because `health()` does not exist yet.
 
-- [ ] **Step 3: Implement the health endpoint**
+- [x] **Step 3: Implement the health endpoint**
 
 Create `backend/src/app.controller.ts`:
 
@@ -240,7 +240,7 @@ export class AppController {
 
 Set `backend/src/main.ts` to listen on `process.env.PORT ?? 3001`.
 
-- [ ] **Step 4: Verify and commit backend**
+- [x] **Step 4: Verify backend as part of the combined setup commit**
 
 Run:
 
@@ -252,8 +252,7 @@ node ./backend/node_modules/@nestjs/cli/bin/nest.js build
 Expected: both commands exit with code 0.
 
 ```bash
-git add backend bun.lock
-git commit -m "✨ feat: scaffold nest backend"
+The frontend and backend are committed together because the Bun workspace lockfile must resolve both packages atomically.
 ```
 
 ## Plan self-review
