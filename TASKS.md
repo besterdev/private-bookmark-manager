@@ -6,7 +6,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 - [x] Commit documentation baseline to `main`
 - [x] `chore/project-setup` - combined frontend and backend workspace scaffold in `.worktrees/project-setup`
-- [ ] `feat/api-spec-and-auth`
+- [x] `feat/api-spec-and-auth` - Auth0 API guard and current-user endpoint
 - [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [ ] `feat/backend-collections`
 - [ ] `feat/backend-bookmarks`
@@ -29,28 +29,28 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## API specification and decisions
 
-- [ ] Inspect Auth0 discovery document and JWKS
-- [ ] Decide which Bearer token the API accepts and document the security rationale
-- [ ] Create `API_DESIGN.md`
-- [ ] Define `/me` API contract
+- [x] Inspect Auth0 discovery document and JWKS
+- [x] Decide which Bearer token the API accepts and document the security rationale
+- [x] Create `API_DESIGN.md`
+- [x] Define `/me` API contract
 - [ ] Define Collections CRUD API contract
 - [ ] Define Bookmarks CRUD and filtering API contract
 - [ ] Define `GET /collections/:id/bookmarks` contract
 - [ ] Define common error response and HTTP status-code standards
 - [ ] Define resource ownership and 404 behaviour for inaccessible resources
-- [ ] Create `DECISIONS.md`
+- [x] Create `DECISIONS.md`
 - [ ] Decide collection deletion behaviour
 - [ ] Decide whether and how collection sharing is supported
 
 ## Backend - authentication and data
 
 - [ ] Configure Auth0 OIDC Authorization Code Flow with PKCE (S256)
-- [ ] Implement JWT validation using issuer, audience, signature, expiry, algorithm, and JWKS
-- [ ] Add authentication guard to protected API routes
+- [x] Implement JWT validation using issuer, audience, signature, expiry, algorithm, and JWKS
+- [x] Add authentication guard to protected API routes
 - [x] Create Prisma schema for users, collections, and bookmarks
 - [x] Create database migration
 - [x] Add seed data for at least two users
-- [ ] Implement `GET /me`
+- [x] Implement `GET /me`
 
 ## Backend - collections
 

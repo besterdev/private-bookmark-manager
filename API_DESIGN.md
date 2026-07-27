@@ -17,10 +17,10 @@ Requests missing or failing validation return `401` with `{ "statusCode": 401, "
 
 ## Current user
 
-`GET /me` returns the validated subject only:
+`GET /me` upserts the validated subject and returns the current user:
 
 ```json
 { "id": "auth0|subject", "email": "user@example.com", "name": "User" }
 ```
 
-`id` is derived only from the verified token `sub`; client input never supplies an owner ID.
+`id` is derived only from the verified token `sub`; client input never supplies an owner ID. `email` and `name` are `null` when the verified access token does not include those claims.
