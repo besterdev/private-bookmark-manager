@@ -98,7 +98,7 @@ Run:
 
 ```bash
 git add AGENTS.md TASKS.md .gitignore .env.example package.json bunfig.toml bun.lock
-git commit -m "chore: initialize bun workspace"
+git commit -m "🎉 chore: initialize bun workspace"
 ```
 
 ### Task 2: Scaffold the React and MUI frontend
@@ -182,7 +182,7 @@ Expected: all commands exit with code 0.
 
 ```bash
 git add frontend bun.lock
-git commit -m "feat: scaffold react frontend"
+git commit -m "✨ feat: scaffold react frontend"
 ```
 
 ### Task 3: Scaffold the NestJS backend
@@ -260,7 +260,7 @@ Expected: both commands exit with code 0.
 
 ```bash
 git add backend bun.lock
-git commit -m "feat: scaffold nest backend"
+git commit -m "✨ feat: scaffold nest backend"
 ```
 
 ## Plan self-review

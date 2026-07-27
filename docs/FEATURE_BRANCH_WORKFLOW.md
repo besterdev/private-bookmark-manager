@@ -50,6 +50,7 @@ main
 - API and data branches require an ownership-isolation test before merge.
 - Frontend branches must preserve the approved MUI design system and responsive behaviour.
 - Keep commit history honest: scaffold, feature, test, and corrective commits remain separate.
+- Every commit subject follows the Gitmoji convention in `AGENTS.md`; use `🔀 merge:` for verified feature-branch merges.
 - Every new branch starts from latest `main`, not another unmerged feature branch, unless its dependency requires it and the dependency branch is named explicitly.
 
 ## Current state

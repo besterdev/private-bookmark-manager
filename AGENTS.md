@@ -148,6 +148,30 @@ Before considering a change complete, run the narrowest relevant test first, the
 9. Keep commits focused and meaningful: scaffold, feature, tests, and fixes should be separate when practical.
 10. Preserve real agent prompts, plans, reviews, and recoveries in `transcripts/`; redact secrets only.
 
+## Commit messages
+
+Use Gitmoji at the start of every commit subject in the format:
+
+```text
+<emoji> <type>: <concise imperative summary>
+```
+
+Use the emoji that accurately describes the primary change. Common choices:
+
+- `🎉 chore:` begin project setup
+- `✨ feat:` add a user-facing feature
+- `💄 style:` add or update UI and styles
+- `📝 docs:` add or update documentation
+- `✅ test:` add, update, or repair tests
+- `🐛 fix:` fix a bug
+- `🔒 fix:` fix a security or privacy issue
+- `🗃️ feat:` make database-related changes
+- `🔧 chore:` update configuration
+- `👷 ci:` add or update CI
+- `🔀 merge:` merge a verified feature branch
+
+Do not use an emoji as decoration; select it according to the Gitmoji definition. Do not mix unrelated changes in one commit.
+
 ## Definition of done
 
 A change is done only when it:
