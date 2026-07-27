@@ -1,0 +1,13 @@
+{
+  "name": "private-bookmark-manager",
+  "private": true,
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev": "bun --filter '*' run dev",
+    "lint": "bun --filter '*' run lint",
+    "typecheck": "bun --filter '*' run typecheck",
+    "test": "bun --filter '*' run test",
+    "test:e2e": "bun --filter '*' run test:e2e",
+    "build": "bun --filter '*' run build"
+  }
+}

@@ -25,7 +25,7 @@
 
 **Produces:** Root commands named `dev`, `lint`, `typecheck`, `test`, `test:e2e`, and `build`; Bun workspaces `frontend` and `backend`.
 
-- [ ] **Step 1: Initialize version control and exclusions**
+- [x] **Step 1: Initialize version control and exclusions**
 
 Run:
 
@@ -46,7 +46,7 @@ test-results/
 *.log
 ```
 
-- [ ] **Step 2: Create the root workspace manifest**
+- [x] **Step 2: Create the root workspace manifest**
 
 Create `package.json`:
 
@@ -75,7 +75,7 @@ minimumReleaseAge = 259200
 minimumReleaseAgeExcludes = ["@types/node", "typescript"]
 ```
 
-- [ ] **Step 3: Create placeholders and verify Bun installation**
+- [x] **Step 3: Create placeholders and defer Bun installation**
 
 Create `.env.example`:
 
@@ -83,21 +83,14 @@ Create `.env.example`:
 VITE_API_BASE_URL=http://localhost:3001
 ```
 
-Run:
+`bun install`, `bun pm ls`, and generation of `bun.lock` are intentionally deferred until Tasks 2 and 3 have created the `frontend` and `backend` workspace directories. Bun 1.3.14 fails when an exact workspace path does not yet exist, and Task 1 must not scaffold either application.
 
-```bash
-bun install
-bun pm ls
-```
-
-Expected: `bun.lock` exists and both commands exit with code 0.
-
-- [ ] **Step 4: Commit the workspace foundation**
+- [x] **Step 4: Commit the workspace foundation**
 
 Run:
 
 ```bash
-git add AGENTS.md TASKS.md .gitignore .env.example package.json bunfig.toml bun.lock
+git add TASKS.md .env.example package.json bunfig.toml docs/superpowers/plans/2026-07-27-project-setup.md
 git commit -m "🎉 chore: initialize bun workspace"
 ```
 

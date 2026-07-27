@@ -20,11 +20,11 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 ## Project setup
 
 - [x] Create `AGENTS.md` with project rules, target structure, commands, and workflow
-- [ ] Initialize Bun workspace and commit `bun.lock`
+- [x] Initialize root Bun workspace (defer `bun install` and `bun.lock` until frontend and backend exist)
 - [ ] Create NestJS backend in `backend/`
 - [ ] Create Vite React frontend in `frontend/`
-- [ ] Add root scripts for dev, lint, typecheck, test, E2E test, and build
-- [ ] Create `.env.example` files without secrets
+- [x] Add root scripts for dev, lint, typecheck, test, E2E test, and build
+- [x] Create `.env.example` files without secrets
 - [ ] Add `.agent/` reusable agent capability
 
 ## API specification and decisions
