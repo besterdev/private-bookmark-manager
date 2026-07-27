@@ -1,10 +1,11 @@
-import {
-  Box,
-  CssBaseline,
-  ThemeProvider,
-  Typography,
-  createTheme,
-} from '@mui/material'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+
+import AuthGate from './auth/AuthGate'
+import AppShell from './layout/AppShell'
+import BookmarksPage from './routes/BookmarksPage'
+import CallbackPage from './routes/CallbackPage'
+import CollectionsPage from './routes/CollectionsPage'
 
 const theme = createTheme({
   palette: {
@@ -33,11 +34,18 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box component="main" sx={{ p: 4 }}>
-        <Typography component="h1" variant="h4">
-          Private Bookmark Manager
-        </Typography>
-      </Box>
+      <AuthGate>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route index element={<Navigate replace to="/collections" />} />
+              <Route path="collections" element={<CollectionsPage />} />
+              <Route path="bookmarks" element={<BookmarksPage />} />
+            </Route>
+            <Route path="callback" element={<CallbackPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthGate>
     </ThemeProvider>
   )
 }
