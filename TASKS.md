@@ -10,7 +10,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [x] `feat/backend-collections`
 - [x] `feat/backend-bookmarks`
-- [ ] `feat/frontend-shell-and-auth`
+- [x] `feat/frontend-shell-and-auth`
 - [ ] `feat/frontend-collections`
 - [ ] `feat/frontend-bookmarks`
 - [ ] `test/authorization-integration`
@@ -76,13 +76,13 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Frontend - authentication and shared UI
 
-- [ ] Configure React Router and MUI
-- [ ] Implement Auth0 login flow
-- [ ] Implement callback handling
-- [ ] Implement logout flow
-- [ ] Implement protected routes
-- [ ] Create authenticated API client
-- [ ] Add shared loading, empty, validation, and error states
+- [x] Configure React Router and MUI
+- [x] Implement Auth0 login flow
+- [x] Implement callback handling
+- [x] Implement logout flow
+- [x] Implement protected routes
+- [x] Create authenticated API client
+- [-] Add shared loading, empty, validation, and error states
 
 ## Frontend - collections
 
