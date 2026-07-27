@@ -1,6 +1,7 @@
 FROM oven/bun:1.3.14 AS build
 WORKDIR /app
-ENV DATABASE_URL=mysql://app_user:app_password@mysql:3306/bookmark_manager
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
 COPY package.json bun.lock ./
 COPY backend/package.json backend/package.json
 COPY frontend/package.json frontend/package.json

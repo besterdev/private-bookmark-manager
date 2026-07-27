@@ -7,7 +7,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Commit documentation baseline to `main`
 - [x] `chore/project-setup` - combined frontend and backend workspace scaffold in `.worktrees/project-setup`
 - [ ] `feat/api-spec-and-auth`
-- [x] `feat/database-prisma` - Docker, Prisma schema, and migration
+- [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [ ] `feat/backend-collections`
 - [ ] `feat/backend-bookmarks`
 - [ ] `feat/frontend-shell-and-auth`
@@ -49,7 +49,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [ ] Add authentication guard to protected API routes
 - [x] Create Prisma schema for users, collections, and bookmarks
 - [x] Create database migration
-- [ ] Add seed data for at least two users
+- [x] Add seed data for at least two users
 - [ ] Implement `GET /me`
 
 ## Backend - collections
