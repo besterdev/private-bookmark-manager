@@ -12,7 +12,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/backend-bookmarks`
 - [x] `feat/frontend-shell-and-auth`
 - [x] `feat/frontend-collections`
-- [ ] `feat/frontend-bookmarks`
+- [x] `feat/frontend-bookmarks`
 - [ ] `test/authorization-integration`
 - [ ] `test/private-bookmark-e2e`
 - [ ] `docs/submission-evidence`
@@ -94,11 +94,11 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Frontend - bookmarks
 
-- [ ] Build bookmarks list page
-- [ ] Build bookmark detail view
-- [ ] Build bookmark create flow
-- [ ] Build bookmark delete flow
-- [ ] Build filter-by-collection control
+- [x] Build bookmarks list page
+- [x] Build bookmark detail view
+- [x] Build bookmark create flow
+- [x] Build bookmark delete flow
+- [x] Build filter-by-collection control
 
 ## Unit and integration tests
 
