@@ -39,3 +39,21 @@ All collection endpoints require a valid Bearer access token.
 | `DELETE` | `/collections/:id` | none | `204` no content |
 
 A collection response contains `id`, `name`, `createdAt`, and `updatedAt`. Invalid names return `400`; missing or unowned collections return `404`. The API does not return `ownerId`.
+
+## Bookmarks
+
+All bookmark endpoints require a valid Bearer access token.
+
+| Method | Path | Body/query | Success |
+| --- | --- | --- | --- |
+| `POST` | `/bookmarks` | `{ "url", "title", "notes?", "collectionId?" }` | `201` bookmark |
+| `GET` | `/bookmarks` | optional `?collectionId=` | `200` bookmark array |
+| `GET` | `/bookmarks/:id` | none | `200` bookmark |
+| `PUT` | `/bookmarks/:id` | `{ "url", "title", "notes?", "collectionId?" }` | `200` bookmark |
+| `PATCH` | `/bookmarks/:id` | one or more mutable fields | `200` bookmark |
+| `DELETE` | `/bookmarks/:id` | none | `204` no content |
+| `GET` | `/collections/:id/bookmarks` | none | `200` bookmark array |
+
+A bookmark response contains `id`, `url`, `title`, `notes`, `collectionId`, `createdAt`, and `updatedAt`; it never returns `ownerId`. `url` must be valid, `title` is a trimmed non-empty string of at most 255 characters, `notes` is optional (or `null`) and at most 10,000 characters, and `collectionId` is a CUID or `null`.
+
+Bookmark lists always filter by the authenticated user. A supplied `collectionId` and the nested collection route first verify that the collection belongs to the authenticated user; missing or foreign collections and bookmarks return `404`. Create and update reject assignment to another user's collection with `404`, preventing both cross-user writes and existence disclosure.

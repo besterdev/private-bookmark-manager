@@ -34,8 +34,8 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Create `API_DESIGN.md`
 - [x] Define `/me` API contract
 - [x] Define Collections CRUD API contract
-- [ ] Define Bookmarks CRUD and filtering API contract
-- [ ] Define `GET /collections/:id/bookmarks` contract
+- [x] Define Bookmarks CRUD and filtering API contract
+- [x] Define `GET /collections/:id/bookmarks` contract
 - [ ] Define common error response and HTTP status-code standards
 - [x] Define resource ownership and 404 behaviour for inaccessible resources
 - [x] Create `DECISIONS.md`
