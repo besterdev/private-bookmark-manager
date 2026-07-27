@@ -6,12 +6,12 @@
 
 **Architecture:** The root workspace coordinates two independently deployable applications. `frontend/` owns React, React Router, and MUI; `backend/` owns NestJS and later API, OIDC, and Prisma work.
 
-**Tech Stack:** Bun 1.3.14, Node.js 22.3.0, TypeScript, React, Vite, MUI, NestJS, Jest, Playwright.
+**Tech Stack:** Bun 1.3.14, Node.js 22.12+ (below 23), TypeScript, React, Vite, MUI, NestJS, Jest, Playwright.
 
 ## Global Constraints
 
 - Use Bun workspaces and commit `bun.lock`.
-- Use Node.js 22 for NestJS, Jest, and Playwright execution.
+- Use Node.js 22.12+ (below 23) for the frontend, NestJS, Jest, and Playwright execution.
 - Keep secrets out of committed files; commit only `.env.example` placeholders.
 - TypeScript strict mode is required; frontend must not access the database or Prisma.
 
@@ -56,12 +56,12 @@ Create `package.json`:
   "private": true,
   "workspaces": ["frontend", "backend"],
   "scripts": {
-    "dev": "bun --filter '*' run dev",
-    "lint": "bun --filter '*' run lint",
-    "typecheck": "bun --filter '*' run typecheck",
-    "test": "bun --filter '*' run test",
-    "test:e2e": "bun --filter '*' run test:e2e",
-    "build": "bun --filter '*' run build"
+    "dev": "bun run --filter '*' --parallel dev",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test",
+    "test:e2e": "bun run --filter backend test:e2e",
+    "build": "bun run --filter '*' build"
   }
 }
 ```

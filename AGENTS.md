@@ -27,7 +27,7 @@ Primary user flows:
 
 Never expose secrets, tokens, or database credentials in source code, client-side environment variables, commits, documentation, or transcripts.
 
-Use Bun for dependency management, scripts, workspaces, and the lockfile. Commit `bun.lock` and use `bun ci` in CI. Use Node.js 22 as the runtime for the NestJS backend and for Jest and Playwright test execution unless compatibility has been verified for Bun runtime.
+Use Bun for dependency management, scripts, workspaces, and the lockfile. Commit `bun.lock` and use `bun ci` in CI. Use Node.js 22.12+ (below 23) as the runtime for the frontend, NestJS backend, Jest, and Playwright unless compatibility has been verified for Bun runtime.
 
 ## Folder structure
 
