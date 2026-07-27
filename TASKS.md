@@ -11,7 +11,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/backend-collections`
 - [x] `feat/backend-bookmarks`
 - [x] `feat/frontend-shell-and-auth`
-- [ ] `feat/frontend-collections`
+- [x] `feat/frontend-collections`
 - [ ] `feat/frontend-bookmarks`
 - [ ] `test/authorization-integration`
 - [ ] `test/private-bookmark-e2e`
@@ -86,10 +86,10 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Frontend - collections
 
-- [ ] Build collections list page
-- [ ] Build collection detail view
-- [ ] Build collection create flow
-- [ ] Build collection delete flow
+- [x] Build collections list page
+- [x] Build collection detail view
+- [x] Build collection create flow
+- [x] Build collection delete flow
 - [ ] Show bookmarks belonging to a selected collection
 
 ## Frontend - bookmarks

@@ -20,3 +20,15 @@ it('throws ApiError when the API responds with an error', async () => {
 
   await expect(createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001').get('/me')).rejects.toBeInstanceOf(ApiError)
 })
+
+it('posts JSON and handles a no-content delete response', async () => {
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'collection-1', name: 'Work' }), { status: 201 }))
+    .mockResolvedValueOnce(new Response(null, { status: 204 }))
+  vi.stubGlobal('fetch', fetchMock)
+  const client = createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+
+  await expect(client.post<{ id: string }>('/collections', { name: 'Work' })).resolves.toEqual({ id: 'collection-1', name: 'Work' })
+  await expect(client.delete('/collections/collection-1')).resolves.toBeUndefined()
+  expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://localhost:3001/collections', expect.objectContaining({ method: 'POST', headers: { Authorization: 'Bearer access-token', 'Content-Type': 'application/json' } }))
+})
