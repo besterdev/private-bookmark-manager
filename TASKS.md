@@ -8,7 +8,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `chore/project-setup` - combined frontend and backend workspace scaffold in `.worktrees/project-setup`
 - [x] `feat/api-spec-and-auth` - Auth0 API guard and current-user endpoint
 - [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
-- [ ] `feat/backend-collections`
+- [x] `feat/backend-collections`
 - [ ] `feat/backend-bookmarks`
 - [ ] `feat/frontend-shell-and-auth`
 - [ ] `feat/frontend-collections`
@@ -33,13 +33,13 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Decide which Bearer token the API accepts and document the security rationale
 - [x] Create `API_DESIGN.md`
 - [x] Define `/me` API contract
-- [ ] Define Collections CRUD API contract
+- [x] Define Collections CRUD API contract
 - [ ] Define Bookmarks CRUD and filtering API contract
 - [ ] Define `GET /collections/:id/bookmarks` contract
 - [ ] Define common error response and HTTP status-code standards
-- [ ] Define resource ownership and 404 behaviour for inaccessible resources
+- [x] Define resource ownership and 404 behaviour for inaccessible resources
 - [x] Create `DECISIONS.md`
-- [ ] Decide collection deletion behaviour
+- [x] Decide collection deletion behaviour
 - [ ] Decide whether and how collection sharing is supported
 
 ## Backend - authentication and data
@@ -54,13 +54,13 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Backend - collections
 
-- [ ] Implement collection create endpoint
-- [ ] Implement collection list endpoint
-- [ ] Implement collection detail endpoint
-- [ ] Implement collection PUT endpoint
-- [ ] Implement collection PATCH endpoint
-- [ ] Implement collection delete endpoint
-- [ ] Enforce owner-scoped collection queries and mutations
+- [x] Implement collection create endpoint
+- [x] Implement collection list endpoint
+- [x] Implement collection detail endpoint
+- [x] Implement collection PUT endpoint
+- [x] Implement collection PATCH endpoint
+- [x] Implement collection delete endpoint
+- [x] Enforce owner-scoped collection queries and mutations
 
 ## Backend - bookmarks
 
@@ -104,19 +104,19 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 - [ ] Test JWT validation and authentication guard
 - [ ] Test request validation and common errors
-- [ ] Test collection service CRUD logic
+- [x] Test collection service CRUD logic
 - [ ] Test bookmark service CRUD and filter logic
-- [ ] Test collection deletion behaviour
-- [ ] Test owner-scoped collection access
+- [x] Test collection deletion behaviour
+- [x] Test owner-scoped collection access
 - [ ] Test owner-scoped bookmark access
 - [ ] Test frontend forms and API state handling
 
 ## End-to-end tests
 
-- [ ] Verify an unauthenticated user cannot use protected routes
-- [ ] Verify authenticated collection CRUD flow
+- [x] Verify an unauthenticated user cannot use protected routes
+- [x] Verify authenticated collection CRUD flow
 - [ ] Verify authenticated bookmark CRUD and filtering flow
-- [ ] Verify User A cannot list, read, update, or delete User B's collection
+- [x] Verify User A cannot list, read, update, or delete User B's collection
 - [ ] Verify User A cannot list, read, update, or delete User B's bookmark
 - [ ] Verify User A cannot access User B's collection bookmarks endpoint
 
