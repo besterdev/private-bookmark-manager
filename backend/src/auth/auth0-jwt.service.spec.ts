@@ -1,7 +1,7 @@
 import { createServer, type Server } from 'node:http';
 
 import { UnauthorizedException } from '@nestjs/common';
-import type { KeyLike } from 'jose';
+import type { CryptoKey } from 'jose';
 
 import { Auth0JwtService } from './auth0-jwt.service';
 
@@ -11,7 +11,7 @@ describe('Auth0JwtService', () => {
   let issuer: string;
   let jose: typeof import('jose');
   let server: Server;
-  let privateKey: KeyLike;
+  let privateKey: CryptoKey;
 
   beforeAll(async () => {
     jose = await import('jose');
@@ -71,7 +71,7 @@ describe('Auth0JwtService', () => {
   });
 });
 
-async function signedToken({ audience, issuer, privateKey }: { audience: string; issuer: string; privateKey: KeyLike }): Promise<string> {
+async function signedToken({ audience, issuer, privateKey }: { audience: string; issuer: string; privateKey: CryptoKey }): Promise<string> {
   const jose = await import('jose');
   return new jose.SignJWT({ email: 'mac@example.com', name: 'Mac' })
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
