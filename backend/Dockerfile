@@ -8,7 +8,7 @@ COPY frontend/package.json frontend/package.json
 RUN bun install --frozen-lockfile
 COPY backend ./backend
 WORKDIR /app/backend
-RUN bunx prisma generate && bun run build
+RUN rm -rf dist tsconfig.tsbuildinfo && bunx prisma generate && bun run build
 
 FROM node:22.19.0-alpine AS runtime
 WORKDIR /app

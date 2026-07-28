@@ -1,0 +1,64 @@
+{
+  "info": {
+    "_postman_id": "a582d446-702b-4a0f-9935-0b25a1a7e92c",
+    "name": "Private Bookmark Manager API",
+    "description": "Set `baseUrl` and paste a valid Auth0 API access token into `accessToken`. Run create requests first to populate `collectionId` and `bookmarkId` automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001" },
+    { "key": "accessToken", "value": "" },
+    { "key": "collectionId", "value": "" },
+    { "key": "bookmarkId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/healthz" }
+        }
+      ]
+    },
+    {
+      "name": "Current user",
+      "item": [
+        { "name": "GET /me", "request": { "method": "GET", "url": "{{baseUrl}}/me" } }
+      ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "POST /collections",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('collectionId', pm.response.json().id);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Work\"\n}" }, "url": "{{baseUrl}}/collections" }
+        },
+        { "name": "GET /collections", "request": { "method": "GET", "url": "{{baseUrl}}/collections" } },
+        { "name": "GET /collections/:id", "request": { "method": "GET", "url": "{{baseUrl}}/collections/{{collectionId}}" } },
+        { "name": "PUT /collections/:id", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Work Updated\"\n}" }, "url": "{{baseUrl}}/collections/{{collectionId}}" } },
+        { "name": "PATCH /collections/:id", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Work Patched\"\n}" }, "url": "{{baseUrl}}/collections/{{collectionId}}" } },
+        { "name": "GET /collections/:id/bookmarks", "request": { "method": "GET", "url": "{{baseUrl}}/collections/{{collectionId}}/bookmarks" } },
+        { "name": "DELETE /collections/:id", "request": { "method": "DELETE", "url": "{{baseUrl}}/collections/{{collectionId}}" } }
+      ]
+    },
+    {
+      "name": "Bookmarks",
+      "item": [
+        {
+          "name": "POST /bookmarks",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('bookmarkId', pm.response.json().id);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"url\": \"https://example.com\",\n  \"title\": \"Example\",\n  \"notes\": \"Saved from Postman\",\n  \"collectionId\": \"{{collectionId}}\"\n}" }, "url": "{{baseUrl}}/bookmarks" }
+        },
+        { "name": "GET /bookmarks", "request": { "method": "GET", "url": "{{baseUrl}}/bookmarks" } },
+        { "name": "GET /bookmarks?collectionId=:id", "request": { "method": "GET", "url": "{{baseUrl}}/bookmarks?collectionId={{collectionId}}" } },
+        { "name": "GET /bookmarks/:id", "request": { "method": "GET", "url": "{{baseUrl}}/bookmarks/{{bookmarkId}}" } },
+        { "name": "PUT /bookmarks/:id", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"url\": \"https://example.org\",\n  \"title\": \"Example Updated\",\n  \"notes\": \"Updated from Postman\",\n  \"collectionId\": null\n}" }, "url": "{{baseUrl}}/bookmarks/{{bookmarkId}}" } },
+        { "name": "PATCH /bookmarks/:id", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Example Patched\"\n}" }, "url": "{{baseUrl}}/bookmarks/{{bookmarkId}}" } },
+        { "name": "DELETE /bookmarks/:id", "request": { "method": "DELETE", "url": "{{baseUrl}}/bookmarks/{{bookmarkId}}" } }
+      ]
+    }
+  ]
+}

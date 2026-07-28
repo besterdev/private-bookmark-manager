@@ -25,6 +25,9 @@ services:
     environment:
       PORT: 3001
       DATABASE_URL: mysql://${MYSQL_USER:?MYSQL_USER is required}:${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}@mysql:3306/${MYSQL_DATABASE:?MYSQL_DATABASE is required}
+      AUTH0_ISSUER_URL: ${AUTH0_ISSUER_URL:?AUTH0_ISSUER_URL is required}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE:?AUTH0_AUDIENCE is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,6 +38,11 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:3001
+        VITE_AUTH0_DOMAIN: ${VITE_AUTH0_DOMAIN:?VITE_AUTH0_DOMAIN is required}
+        VITE_AUTH0_CLIENT_ID: ${VITE_AUTH0_CLIENT_ID:?VITE_AUTH0_CLIENT_ID is required}
+        VITE_AUTH0_AUDIENCE: ${VITE_AUTH0_AUDIENCE:?VITE_AUTH0_AUDIENCE is required}
     depends_on:
       - backend
     ports:

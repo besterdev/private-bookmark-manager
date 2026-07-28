@@ -13,13 +13,20 @@ export class Auth0JwtService {
   async verifyAccessToken(token: string): Promise<VerifiedAuth0Claims> {
     try {
       const { createRemoteJWKSet, jwtVerify } = await import('jose');
-      const verifiedToken = await jwtVerify(token, this.getRemoteJwks(createRemoteJWKSet), {
-        issuer: this.issuer,
-        audience: this.audience,
-        algorithms: ['RS256'],
-      });
+      const verifiedToken = await jwtVerify(
+        token,
+        this.getRemoteJwks(createRemoteJWKSet),
+        {
+          issuer: this.issuer,
+          audience: this.audience,
+          algorithms: ['RS256'],
+        },
+      );
 
-      if (typeof verifiedToken.payload.sub !== 'string' || !verifiedToken.payload.sub) {
+      if (
+        typeof verifiedToken.payload.sub !== 'string' ||
+        !verifiedToken.payload.sub
+      ) {
         throw new UnauthorizedException();
       }
 
@@ -34,7 +41,9 @@ export class Auth0JwtService {
   }
 
   private getRemoteJwks(createRemoteJWKSet: JoseModule['createRemoteJWKSet']) {
-    this.remoteJwks ??= createRemoteJWKSet(new URL('.well-known/jwks.json', this.issuer));
+    this.remoteJwks ??= createRemoteJWKSet(
+      new URL('.well-known/jwks.json', this.issuer),
+    );
     return this.remoteJwks;
   }
 }

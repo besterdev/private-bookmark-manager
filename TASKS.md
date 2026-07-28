@@ -13,7 +13,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/frontend-shell-and-auth`
 - [x] `feat/frontend-collections`
 - [x] `feat/frontend-bookmarks`
-- [ ] `test/authorization-integration`
+- [x] `test/authorization-integration`
 - [ ] `test/private-bookmark-e2e`
 - [ ] `docs/submission-evidence`
 
@@ -102,7 +102,8 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Unit and integration tests
 
-- [ ] Test JWT validation and authentication guard
+- [x] Test JWT validation with a remote JWKS (signature, issuer, and audience)
+- [x] Test authentication guard bearer-token enforcement
 - [ ] Test request validation and common errors
 - [x] Test collection service CRUD logic
 - [x] Test bookmark service CRUD and filter logic

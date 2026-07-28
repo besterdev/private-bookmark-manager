@@ -8,7 +8,7 @@ The API accepts an Auth0 **access token**, not an ID token. Access tokens are is
 
 The validator must require:
 
-- issuer `https://dev-yg.us.auth0.com/`
+- issuer `https://dev-koob6nuzlnt01hbd.us.auth0.com/`
 - audience `https://bbl-candidate-test-api`
 - RS256 signature verified using Auth0 JWKS
 - unexpired token with a non-empty `sub` claim

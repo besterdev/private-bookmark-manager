@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { Auth0JwtService } from './auth0-jwt.service';
 import type { AuthenticatedRequest } from './authenticated-request.interface';

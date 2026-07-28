@@ -7,10 +7,10 @@
     "node": ">=22.12.0 <23"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3000 --strictPort",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
+    "preview": "vite preview --port 3000 --strictPort",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run"
   },
