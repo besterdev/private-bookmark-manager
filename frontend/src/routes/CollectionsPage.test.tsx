@@ -34,3 +34,17 @@ it('retries a failed collection request', async () => {
   expect(await screen.findByText('No collections yet')).toBeVisible()
   expect(api.get).toHaveBeenCalledTimes(2)
 })
+
+it('keeps creation open and reports a failed collection create', async () => {
+  api.get.mockResolvedValueOnce([])
+  api.post.mockRejectedValueOnce(new Error('Unable to save collection'))
+  render(<CollectionsPage />)
+
+  fireEvent.click((await screen.findAllByRole('button', { name: 'Create collection' }))[1])
+  fireEvent.change(screen.getByLabelText('Collection name'), { target: { value: 'Work' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+  expect(await screen.findByText('Unable to save collection')).toBeVisible()
+  expect(screen.getByRole('dialog', { name: 'Create collection' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+})
