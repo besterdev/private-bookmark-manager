@@ -82,7 +82,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Implement logout flow
 - [x] Implement protected routes
 - [x] Create authenticated API client
-- [-] Add shared loading, empty, validation, and error states
+- [x] Add shared loading, empty, validation, and error states
 
 ## Frontend - collections
 
@@ -110,7 +110,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Test collection deletion behaviour
 - [x] Test owner-scoped collection access
 - [x] Test owner-scoped bookmark access
-- [ ] Test frontend forms and API state handling
+- [x] Test frontend forms and API state handling
 
 ## End-to-end tests
 
