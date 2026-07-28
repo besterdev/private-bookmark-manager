@@ -38,7 +38,7 @@
 - Consumes: `Bookmark` from `frontend/src/features/bookmarks/types.ts`.
 - Produces: `BookmarkCard({ bookmark, collectionName, onDelete }: { bookmark: Bookmark; collectionName: string; onDelete: (bookmark: Bookmark) => void }): JSX.Element`.
 
-- [ ] **Step 1: Write failing tests for link and delete behavior**
+- [x] **Step 1: Write failing tests for link and delete behavior**
 
 ```tsx
 it('opens the bookmark from its card action area in a new tab safely', () => {
@@ -57,13 +57,13 @@ it('passes its bookmark to the delete action', () => {
 })
 ```
 
-- [ ] **Step 2: Run the focused test to verify it fails**
+- [x] **Step 2: Run the focused test to verify it fails**
 
 Run: `bun --cwd frontend test -- BookmarkCard.test.tsx`
 
 Expected: FAIL because `BookmarkCard` does not exist.
 
-- [ ] **Step 3: Write the minimal accessible card implementation**
+- [x] **Step 3: Write the minimal accessible card implementation**
 
 ```tsx
 export default function BookmarkCard({ bookmark, collectionName, onDelete }: Props) {
@@ -77,13 +77,13 @@ export default function BookmarkCard({ bookmark, collectionName, onDelete }: Pro
 }
 ```
 
-- [ ] **Step 4: Run the card test to verify it passes**
+- [x] **Step 4: Run the card test to verify it passes**
 
 Run: `bun --cwd frontend test -- BookmarkCard.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the card**
+- [x] **Step 5: Commit the card**
 
 ```bash
 git add frontend/src/features/bookmarks/BookmarkCard.tsx frontend/src/features/bookmarks/BookmarkCard.test.tsx
@@ -100,7 +100,7 @@ git commit -m "✨ feat: add bookmark grid card"
 - Consumes: `Bookmark[]`, `Record<string, string>`, and `BookmarkCard` from Task 1.
 - Produces: `BookmarkCardGrid({ items, collectionNameById, onDelete }: { items: Bookmark[]; collectionNameById: Record<string, string>; onDelete: (bookmark: Bookmark) => void }): JSX.Element`.
 
-- [ ] **Step 1: Write failing grid tests**
+- [x] **Step 1: Write failing grid tests**
 
 ```tsx
 it('shows an empty message for the active filter with no bookmarks', () => {
@@ -115,13 +115,13 @@ it('renders one card for each bookmark', () => {
 })
 ```
 
-- [ ] **Step 2: Run the focused tests to verify they fail**
+- [x] **Step 2: Run the focused tests to verify they fail**
 
 Run: `bun --cwd frontend test -- BookmarkCardGrid.test.tsx`
 
 Expected: FAIL because `BookmarkCardGrid` does not exist.
 
-- [ ] **Step 3: Write the responsive grid implementation**
+- [x] **Step 3: Write the responsive grid implementation**
 
 ```tsx
 export default function BookmarkCardGrid({ items, collectionNameById, onDelete }: Props) {
@@ -132,13 +132,13 @@ export default function BookmarkCardGrid({ items, collectionNameById, onDelete }
 }
 ```
 
-- [ ] **Step 4: Run the grid test to verify it passes**
+- [x] **Step 4: Run the grid test to verify it passes**
 
 Run: `bun --cwd frontend test -- BookmarkCardGrid.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the grid**
+- [x] **Step 5: Commit the grid**
 
 ```bash
 git add frontend/src/features/bookmarks/BookmarkCardGrid.tsx frontend/src/features/bookmarks/BookmarkCardGrid.test.tsx
@@ -154,7 +154,7 @@ git commit -m "✨ feat: add bookmarks grid"
 - Consumes: `BookmarkCardGrid` from Task 2 and the existing `BookmarkDialog` props.
 - Produces: a Bookmarks page without `BookmarkList`, `BookmarkDetail`, or `selectedId`; it owns `bookmarkToDelete?: Bookmark` for the confirmation dialog.
 
-- [ ] **Step 1: Write a failing page-level delete-target test**
+- [x] **Step 1: Write a failing page-level delete-target test**
 
 ```tsx
 it('opens the delete confirmation for the bookmark selected from a card', async () => {
@@ -164,13 +164,13 @@ it('opens the delete confirmation for the bookmark selected from a card', async 
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun --cwd frontend test -- BookmarksPage.test.tsx`
 
 Expected: FAIL because the page still renders `BookmarkList` and needs a selected detail panel before deletion.
 
-- [ ] **Step 3: Replace selection state with card-grid delete state**
+- [x] **Step 3: Replace selection state with card-grid delete state**
 
 ```tsx
 const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
@@ -188,13 +188,13 @@ const remove = async () => {
 
 Remove `BookmarkList`, `BookmarkDetail`, `selectedId`, and the two-column layout. Change the dialog `open` prop to `Boolean(bookmarkToDelete)` and its close handler to `() => setBookmarkToDelete(undefined)`.
 
-- [ ] **Step 4: Run focused UI tests and typecheck**
+- [x] **Step 4: Run focused UI tests and typecheck**
 
 Run: `bun --cwd frontend test -- BookmarkCard.test.tsx BookmarkCardGrid.test.tsx BookmarksPage.test.tsx && bun --cwd frontend typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the page integration**
+- [x] **Step 5: Commit the page integration**
 
 ```bash
 git add frontend/src/routes/BookmarksPage.tsx frontend/src/routes/BookmarksPage.test.tsx
@@ -203,8 +203,8 @@ git commit -m "✨ feat: redesign bookmarks as card grid"
 
 ## Verification
 
-- [ ] Run `bun --cwd frontend test -- BookmarkCard.test.tsx BookmarkCardGrid.test.tsx BookmarksPage.test.tsx`.
-- [ ] Run `bun --cwd frontend typecheck`.
+- [x] Run `bun --cwd frontend test -- BookmarkCard.test.tsx BookmarkCardGrid.test.tsx BookmarksPage.test.tsx`.
+- [x] Run `bun --cwd frontend typecheck`.
 - [ ] Verify in the browser that collection filters update the grid, cards open external links, and a card delete action opens the confirmation dialog.
 
 ## Self-review
