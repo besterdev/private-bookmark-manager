@@ -33,7 +33,7 @@
 **Interfaces:**
 - Produces a project-wide contract for error responses with `statusCode`, `message`, and `error` fields.
 
-- [ ] **Step 1: Add the status-code matrix after Authentication**
+- [x] **Step 1: Add the status-code matrix after Authentication**
 
 ```md
 ## Error responses
@@ -49,7 +49,7 @@ NestJS returns `{ "statusCode", "message", "error" }` for HTTP exceptions. DTO v
 | `500` | An unexpected failure; implementation details are not exposed. |
 ```
 
-- [ ] **Step 2: Add examples for validation and private-resource errors**
+- [x] **Step 2: Add examples for validation and private-resource errors**
 
 ```json
 { "statusCode": 400, "message": ["name should not be empty"], "error": "Bad Request" }
@@ -59,7 +59,7 @@ NestJS returns `{ "statusCode", "message", "error" }` for HTTP exceptions. DTO v
 { "statusCode": 404, "message": "Collection not found", "error": "Not Found" }
 ```
 
-- [ ] **Step 3: Commit the documentation**
+- [x] **Step 3: Commit the documentation**
 
 ```bash
 git add API_DESIGN.md
@@ -77,7 +77,7 @@ git commit -m "📝 docs: document API error responses"
 - Consumes the existing global `ValidationPipe`, `TestAuthGuard`, and `CollectionsController`.
 - Produces HTTP-level regression coverage for `400`, `401`, and `404` response bodies, including a consistent `error` field.
 
-- [ ] **Step 1: Expand the validation test with failing response-body assertions**
+- [x] **Step 1: Expand the validation test with failing response-body assertions**
 
 ```ts
 const invalidResponse = await request(app.getHttpServer())
@@ -95,7 +95,7 @@ expect(invalidResponse.body.message).toEqual(
 )
 ```
 
-- [ ] **Step 2: Expand the authentication test with failing response-body assertions**
+- [x] **Step 2: Expand the authentication test with failing response-body assertions**
 
 ```ts
 const response = await request(app.getHttpServer()).get('/collections').expect(401)
@@ -107,7 +107,7 @@ expect(response.body).toEqual({
 })
 ```
 
-- [ ] **Step 3: Expand the foreign-resource test with failing response-body assertions**
+- [x] **Step 3: Expand the foreign-resource test with failing response-body assertions**
 
 ```ts
 const response = await request(app.getHttpServer())
@@ -122,7 +122,7 @@ expect(response.body).toEqual({
 })
 ```
 
-- [ ] **Step 4: Run the E2E test to verify the 401 contract fails**
+- [x] **Step 4: Run the E2E test to verify the 401 contract fails**
 
 Run:
 
@@ -132,7 +132,7 @@ DATABASE_URL='mysql://…' AUTH0_ISSUER_URL='https://…/' AUTH0_AUDIENCE='https
 
 Expected: FAIL because `new UnauthorizedException()` returns only `statusCode` and `message` in NestJS 11.
 
-- [ ] **Step 5: Add the explicit unauthorized message in production and test guard code**
+- [x] **Step 5: Add the explicit unauthorized message in production and test guard code**
 
 ```ts
 throw new UnauthorizedException('Unauthorized')
@@ -140,7 +140,7 @@ throw new UnauthorizedException('Unauthorized')
 
 Apply this at both header-rejection paths in `auth.guard.ts`, both rejection paths in `auth0-jwt.service.ts`, and the `TestAuthGuard` fixture in `collections.e2e-spec.ts`.
 
-- [ ] **Step 6: Run the targeted E2E test and typecheck**
+- [x] **Step 6: Run the targeted E2E test and typecheck**
 
 Run:
 
@@ -151,7 +151,7 @@ bun --cwd backend typecheck
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the tested contract**
+- [x] **Step 7: Commit the tested contract**
 
 ```bash
 git add backend/test/collections.e2e-spec.ts
@@ -163,14 +163,14 @@ git commit -m "✅ test: cover API error responses"
 **Files:**
 - Modify: `TASKS.md`
 
-- [ ] **Step 1: Mark the completed API and test items**
+- [x] **Step 1: Mark the completed API and test items**
 
 ```md
 - [x] Define common error response and HTTP status-code standards
 - [x] Test request validation and common errors
 ```
 
-- [ ] **Step 2: Commit the checklist update**
+- [x] **Step 2: Commit the checklist update**
 
 ```bash
 git add TASKS.md
@@ -179,10 +179,10 @@ git commit -m "📝 docs: mark API error contract complete"
 
 ## Verification
 
-- [ ] Run the targeted Collections E2E test.
-- [ ] Run the complete backend E2E suite.
-- [ ] Run `bun --cwd backend typecheck`.
-- [ ] Verify `API_DESIGN.md` matches the asserted response bodies.
+- [x] Run the targeted Collections E2E test.
+- [x] Run the complete backend E2E suite.
+- [x] Run `bun --cwd backend typecheck`.
+- [x] Verify `API_DESIGN.md` matches the asserted response bodies.
 
 ## Self-review
 

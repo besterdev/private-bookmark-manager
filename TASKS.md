@@ -36,7 +36,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Define Collections CRUD API contract
 - [x] Define Bookmarks CRUD and filtering API contract
 - [x] Define `GET /collections/:id/bookmarks` contract
-- [ ] Define common error response and HTTP status-code standards
+- [x] Define common error response and HTTP status-code standards
 - [x] Define resource ownership and 404 behaviour for inaccessible resources
 - [x] Create `DECISIONS.md`
 - [x] Decide collection deletion behaviour
@@ -104,7 +104,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 - [x] Test JWT validation with a remote JWKS (signature, issuer, and audience)
 - [x] Test authentication guard bearer-token enforcement
-- [ ] Test request validation and common errors
+- [x] Test request validation and common errors
 - [x] Test collection service CRUD logic
 - [x] Test bookmark service CRUD and filter logic
 - [x] Test collection deletion behaviour
