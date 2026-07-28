@@ -27,7 +27,7 @@ export class Auth0JwtService {
         typeof verifiedToken.payload.sub !== 'string' ||
         !verifiedToken.payload.sub
       ) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException('Unauthorized');
       }
 
       return {
@@ -36,7 +36,7 @@ export class Auth0JwtService {
         name: stringClaim(verifiedToken.payload.name),
       };
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Unauthorized');
     }
   }
 

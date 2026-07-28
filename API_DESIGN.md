@@ -15,6 +15,28 @@ The validator must require:
 
 Requests missing or failing validation return `401` with `{ "statusCode": 401, "message": "Unauthorized" }`.
 
+## Error responses
+
+NestJS returns `{ "statusCode", "message", "error" }` for HTTP exceptions. DTO validation returns an array in `message`; explicit exceptions return a string.
+
+| Status | Meaning |
+| --- | --- |
+| `400` | DTO validation fails or a PATCH body has no mutable fields. |
+| `401` | The protected route has no valid Bearer access token. |
+| `404` | The resource is missing or is owned by another user. |
+| `409` | Reserved for a future conflict; no endpoint currently returns it. |
+| `500` | An unexpected failure; implementation details are not exposed. |
+
+```json
+{ "statusCode": 400, "message": ["name should not be empty"], "error": "Bad Request" }
+```
+
+```json
+{ "statusCode": 404, "message": "Collection not found", "error": "Not Found" }
+```
+
+Foreign resources return the same `404` response as missing resources so ownership cannot be inferred from status codes or message text.
+
 ## Current user
 
 `GET /me` upserts the validated subject and returns the current user:

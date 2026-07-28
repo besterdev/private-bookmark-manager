@@ -36,7 +36,7 @@ class TestAuthGuard {
       return true;
     }
 
-    throw new UnauthorizedException();
+    throw new UnauthorizedException('Unauthorized');
   }
 }
 
@@ -80,15 +80,31 @@ describe('Collections (e2e)', () => {
   });
 
   it('requires authentication', async () => {
-    await request(app.getHttpServer()).get('/collections').expect(401);
+    const response = await request(app.getHttpServer())
+      .get('/collections')
+      .expect(401);
+
+    expect(response.body).toEqual({
+      statusCode: 401,
+      message: 'Unauthorized',
+      error: 'Unauthorized',
+    });
   });
 
   it('validates and trims a collection name', async () => {
-    await request(app.getHttpServer())
+    const invalidResponse = await request(app.getHttpServer())
       .post('/collections')
       .set('Authorization', 'Bearer test-user-a')
       .send({ name: '   ' })
       .expect(400);
+
+    expect(invalidResponse.body).toMatchObject({
+      statusCode: 400,
+      error: 'Bad Request',
+    });
+    expect(invalidResponse.body.message).toEqual(
+      expect.arrayContaining([expect.stringMatching(/should not be empty/)]),
+    );
 
     const response = await request(app.getHttpServer())
       .post('/collections')
@@ -157,7 +173,12 @@ describe('Collections (e2e)', () => {
         method === 'patch'
           ? requestBuilder.send({ name: 'Changed' })
           : requestBuilder;
-      await response.expect(404);
+      const errorResponse = await response.expect(404);
+      expect(errorResponse.body).toEqual({
+        statusCode: 404,
+        message: 'Collection not found',
+        error: 'Not Found',
+      });
     }
   });
 
