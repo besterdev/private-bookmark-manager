@@ -22,6 +22,7 @@
 
 - Modify `API_DESIGN.md`: add shared HTTP status definitions and response examples.
 - Modify `backend/test/collections.e2e-spec.ts`: assert the full HTTP error contract at the existing validation, authentication, and foreign-resource coverage points.
+- Modify `backend/src/auth/auth.guard.ts` and `backend/src/auth/auth0-jwt.service.ts`: construct explicit unauthorized exceptions so `401` responses include the default NestJS `error` field.
 - Modify `TASKS.md`: mark the error contract and request-validation tests complete after verification.
 
 ### Task 1: Document the common HTTP error contract
@@ -69,10 +70,12 @@ git commit -m "📝 docs: document API error responses"
 
 **Files:**
 - Modify: `backend/test/collections.e2e-spec.ts`
+- Modify: `backend/src/auth/auth.guard.ts`
+- Modify: `backend/src/auth/auth0-jwt.service.ts`
 
 **Interfaces:**
 - Consumes the existing global `ValidationPipe`, `TestAuthGuard`, and `CollectionsController`.
-- Produces HTTP-level regression coverage for `400`, `401`, and `404` response bodies.
+- Produces HTTP-level regression coverage for `400`, `401`, and `404` response bodies, including a consistent `error` field.
 
 - [ ] **Step 1: Expand the validation test with failing response-body assertions**
 
@@ -119,7 +122,7 @@ expect(response.body).toEqual({
 })
 ```
 
-- [ ] **Step 4: Run the E2E test to verify it fails before an implementation adjustment**
+- [ ] **Step 4: Run the E2E test to verify the 401 contract fails**
 
 Run:
 
@@ -127,9 +130,17 @@ Run:
 DATABASE_URL='mysql://…' AUTH0_ISSUER_URL='https://…/' AUTH0_AUDIENCE='https://…' bun --cwd backend test:e2e -- collections.e2e-spec.ts
 ```
 
-Expected: If any assertion fails, make only the smallest configuration or expectation correction needed to match the approved NestJS contract. If all assertions pass, the implementation already conforms and no application-code change is needed.
+Expected: FAIL because `new UnauthorizedException()` returns only `statusCode` and `message` in NestJS 11.
 
-- [ ] **Step 5: Run the targeted E2E test and typecheck**
+- [ ] **Step 5: Add the explicit unauthorized message in production and test guard code**
+
+```ts
+throw new UnauthorizedException('Unauthorized')
+```
+
+Apply this at both header-rejection paths in `auth.guard.ts`, both rejection paths in `auth0-jwt.service.ts`, and the `TestAuthGuard` fixture in `collections.e2e-spec.ts`.
+
+- [ ] **Step 6: Run the targeted E2E test and typecheck**
 
 Run:
 
@@ -140,7 +151,7 @@ bun --cwd backend typecheck
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the tested contract**
+- [ ] **Step 7: Commit the tested contract**
 
 ```bash
 git add backend/test/collections.e2e-spec.ts
@@ -175,6 +186,6 @@ git commit -m "📝 docs: mark API error contract complete"
 
 ## Self-review
 
-- Spec coverage: Tasks 1–3 cover the approved default NestJS format, the `400/401/404` status matrix, E2E regression assertions, and checklist updates.
+- Spec coverage: Tasks 1–3 cover the approved default NestJS format, explicit `401` error-field consistency, the `400/401/404` status matrix, E2E regression assertions, and checklist updates.
 - Placeholder scan: Commands use redacted environment values deliberately; they must be supplied through the project's local environment, never committed.
 - Type consistency: Tests use existing Supertest response bodies and existing deterministic collection ownership fixtures; no new application interfaces are introduced.

@@ -23,12 +23,12 @@ export class AuthGuard implements CanActivate {
 
 function bearerToken(authorization: string | string[] | undefined): string {
   if (typeof authorization !== 'string') {
-    throw new UnauthorizedException();
+    throw new UnauthorizedException('Unauthorized');
   }
 
   const match = /^Bearer (.+)$/.exec(authorization);
   if (!match) {
-    throw new UnauthorizedException();
+    throw new UnauthorizedException('Unauthorized');
   }
 
   return match[1];
