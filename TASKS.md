@@ -14,7 +14,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/frontend-collections`
 - [x] `feat/frontend-bookmarks`
 - [x] `test/authorization-integration`
-- [ ] `test/private-bookmark-e2e`
+- [x] `test/private-bookmark-e2e`
 - [ ] `docs/submission-evidence`
 
 ## Project setup
