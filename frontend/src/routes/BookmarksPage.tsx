@@ -1,10 +1,8 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { Add } from '@mui/icons-material'
 import {
-  Alert,
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,6 +13,8 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
+import ErrorState from '../components/states/ErrorState'
+import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
 import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
@@ -88,11 +88,7 @@ export default function BookmarksPage() {
   }
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'grid', minHeight: 240, placeItems: 'center' }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingState label="Loading bookmarks" />
   }
 
   return (
@@ -109,7 +105,7 @@ export default function BookmarksPage() {
         </Button>
       </Stack>
 
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && <ErrorState message={error} onRetry={() => void load()} />}
 
       <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
         <MenuItem value="all">All bookmarks</MenuItem>
