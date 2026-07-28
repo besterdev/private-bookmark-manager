@@ -45,3 +45,16 @@ it('renders bookmarks as cards and opens their delete confirmation', async () =>
 
   expect(screen.getByRole('heading', { name: 'Delete bookmark?' })).toBeVisible()
 })
+
+it('retries a failed bookmark request', async () => {
+  api.get
+    .mockRejectedValueOnce(new Error('Network unavailable'))
+    .mockResolvedValue([])
+
+  render(<BookmarksPage />)
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable')
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  expect(await screen.findByText('No bookmarks found.')).toBeVisible()
+  expect(api.get).toHaveBeenCalledTimes(4)
+})
