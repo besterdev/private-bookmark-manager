@@ -44,7 +44,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Backend - authentication and data
 
-- [ ] Configure Auth0 OIDC Authorization Code Flow with PKCE (S256)
+- [x] Configure Auth0 OIDC Authorization Code Flow with PKCE (S256)
 - [x] Implement JWT validation using issuer, audience, signature, expiry, algorithm, and JWKS
 - [x] Add authentication guard to protected API routes
 - [x] Create Prisma schema for users, collections, and bookmarks
@@ -90,7 +90,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Build collection detail view
 - [x] Build collection create flow
 - [x] Build collection delete flow
-- [ ] Show bookmarks belonging to a selected collection
+- [x] Show bookmarks belonging to a selected collection
 
 ## Frontend - bookmarks
 
