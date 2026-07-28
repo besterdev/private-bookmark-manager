@@ -7,7 +7,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Commit documentation baseline to `main`
 - [x] `chore/project-setup` - combined frontend and backend workspace scaffold in `.worktrees/project-setup`
 - [x] `feat/api-spec-and-auth` - Auth0 API guard and current-user endpoint
-- [-] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
+- [x] `feat/database-prisma` - Docker, Prisma schema, migration, and seed verification
 - [x] `feat/backend-collections`
 - [x] `feat/backend-bookmarks`
 - [x] `feat/frontend-shell-and-auth`
