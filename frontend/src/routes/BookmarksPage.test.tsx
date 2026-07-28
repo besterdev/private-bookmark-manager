@@ -45,3 +45,31 @@ it('renders bookmarks as cards and opens their delete confirmation', async () =>
 
   expect(screen.getByRole('heading', { name: 'Delete bookmark?' })).toBeVisible()
 })
+
+it('retries a failed bookmark request', async () => {
+  api.get
+    .mockRejectedValueOnce(new Error('Network unavailable'))
+    .mockResolvedValue([])
+
+  render(<BookmarksPage />)
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable')
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  expect(await screen.findByText('No bookmarks found.')).toBeVisible()
+  expect(api.get).toHaveBeenCalledTimes(4)
+})
+
+it('keeps creation open and reports a failed bookmark create', async () => {
+  api.get.mockResolvedValue([])
+  api.post.mockRejectedValueOnce(new Error('Unable to save bookmark'))
+  render(<BookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Create bookmark' }))
+  fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'MUI' } })
+  fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'https://mui.com' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save bookmark' }))
+
+  expect(await screen.findByText('Unable to save bookmark')).toBeVisible()
+  expect(screen.getByRole('dialog', { name: 'Create bookmark' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+})

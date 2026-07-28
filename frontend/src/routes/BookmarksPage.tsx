@@ -1,10 +1,8 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { Add } from '@mui/icons-material'
 import {
-  Alert,
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,6 +13,8 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
+import ErrorState from '../components/states/ErrorState'
+import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
 import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
@@ -28,7 +28,7 @@ export default function BookmarksPage() {
   const [filter, setFilter] = useState('all')
   const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<{ message: string; retry: boolean }>()
   const [createOpen, setCreateOpen] = useState(false)
 
   const collectionNameById = useMemo(
@@ -38,7 +38,7 @@ export default function BookmarksPage() {
 
   const load = async () => {
     setLoading(true)
-    setError('')
+    setError(undefined)
 
     try {
       const [next, options] = await Promise.all([
@@ -50,7 +50,7 @@ export default function BookmarksPage() {
       setCollections(options)
       setItems(filter === 'none' ? next.filter((item) => !item.collectionId) : next)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to load bookmarks')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
@@ -71,7 +71,7 @@ export default function BookmarksPage() {
       setItems((current) => [item, ...current])
       setCreateOpen(false)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to create bookmark')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to create bookmark', retry: false })
     }
   }
 
@@ -83,16 +83,12 @@ export default function BookmarksPage() {
       setItems((current) => current.filter((item) => item.id !== bookmarkToDelete.id))
       setBookmarkToDelete(undefined)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to delete bookmark')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to delete bookmark', retry: false })
     }
   }
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'grid', minHeight: 240, placeItems: 'center' }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingState label="Loading bookmarks" />
   }
 
   return (
@@ -109,7 +105,7 @@ export default function BookmarksPage() {
         </Button>
       </Stack>
 
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
 
       <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
         <MenuItem value="all">All bookmarks</MenuItem>
