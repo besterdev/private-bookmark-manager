@@ -28,7 +28,7 @@ export default function BookmarksPage() {
   const [filter, setFilter] = useState('all')
   const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<{ message: string; retry: boolean }>()
   const [createOpen, setCreateOpen] = useState(false)
 
   const collectionNameById = useMemo(
@@ -38,7 +38,7 @@ export default function BookmarksPage() {
 
   const load = async () => {
     setLoading(true)
-    setError('')
+    setError(undefined)
 
     try {
       const [next, options] = await Promise.all([
@@ -50,7 +50,7 @@ export default function BookmarksPage() {
       setCollections(options)
       setItems(filter === 'none' ? next.filter((item) => !item.collectionId) : next)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to load bookmarks')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
@@ -71,7 +71,7 @@ export default function BookmarksPage() {
       setItems((current) => [item, ...current])
       setCreateOpen(false)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to create bookmark')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to create bookmark', retry: false })
     }
   }
 
@@ -83,7 +83,7 @@ export default function BookmarksPage() {
       setItems((current) => current.filter((item) => item.id !== bookmarkToDelete.id))
       setBookmarkToDelete(undefined)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to delete bookmark')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to delete bookmark', retry: false })
     }
   }
 
@@ -105,7 +105,7 @@ export default function BookmarksPage() {
         </Button>
       </Stack>
 
-      {error && <ErrorState message={error} onRetry={() => void load()} />}
+      {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
 
       <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
         <MenuItem value="all">All bookmarks</MenuItem>
