@@ -38,7 +38,7 @@
 - Consumes: `Bookmark` from `frontend/src/features/bookmarks/types.ts`.
 - Produces: `BookmarkCard({ bookmark }: { bookmark: Bookmark }): JSX.Element`.
 
-- [ ] **Step 1: Write the failing card behavior test**
+- [x] **Step 1: Write the failing card behavior test**
 
 ```tsx
 it('opens its bookmark URL in a new tab safely', () => {
@@ -51,13 +51,13 @@ it('opens its bookmark URL in a new tab safely', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun --cwd frontend test -- BookmarkCard.test.tsx`
 
 Expected: FAIL because `BookmarkCard` does not exist.
 
-- [ ] **Step 3: Write the minimal card implementation**
+- [x] **Step 3: Write the minimal card implementation**
 
 ```tsx
 export default function BookmarkCard({ bookmark }: { bookmark: Bookmark }) {
@@ -69,13 +69,13 @@ export default function BookmarkCard({ bookmark }: { bookmark: Bookmark }) {
 }
 ```
 
-- [ ] **Step 4: Run the focused test to verify it passes**
+- [x] **Step 4: Run the focused test to verify it passes**
 
 Run: `bun --cwd frontend test -- BookmarkCard.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the focused card component**
+- [x] **Step 5: Commit the focused card component**
 
 ```bash
 git add frontend/src/features/collections/BookmarkCard.tsx frontend/src/features/collections/BookmarkCard.test.tsx
@@ -92,7 +92,7 @@ git commit -m "✨ feat: add bookmark card"
 - Consumes: `Bookmark[]` and `BookmarkCard` from Task 1.
 - Produces: `BookmarkCardGrid({ bookmarks }: { bookmarks: Bookmark[] }): JSX.Element`.
 
-- [ ] **Step 1: Write the failing grid tests**
+- [x] **Step 1: Write the failing grid tests**
 
 ```tsx
 it('shows an empty-state message when the collection has no bookmarks', () => {
@@ -107,13 +107,13 @@ it('renders every bookmark as a card', () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `bun --cwd frontend test -- BookmarkCardGrid.test.tsx`
 
 Expected: FAIL because `BookmarkCardGrid` does not exist.
 
-- [ ] **Step 3: Write the minimal responsive grid implementation**
+- [x] **Step 3: Write the minimal responsive grid implementation**
 
 ```tsx
 export default function BookmarkCardGrid({ bookmarks }: { bookmarks: Bookmark[] }) {
@@ -124,13 +124,13 @@ export default function BookmarkCardGrid({ bookmarks }: { bookmarks: Bookmark[] 
 }
 ```
 
-- [ ] **Step 4: Run the focused tests to verify they pass**
+- [x] **Step 4: Run the focused tests to verify they pass**
 
 Run: `bun --cwd frontend test -- BookmarkCardGrid.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the grid**
+- [x] **Step 5: Commit the grid**
 
 ```bash
 git add frontend/src/features/collections/BookmarkCardGrid.tsx frontend/src/features/collections/BookmarkCardGrid.test.tsx
@@ -148,7 +148,7 @@ git commit -m "✨ feat: add bookmark card grid"
 - Consumes: `collection?: Collection`, `getBookmarks: (collectionId: string) => Promise<Bookmark[]>`, and `BookmarkCardGrid` from Task 2.
 - Produces: `CollectionDetail` that renders skeletons while loading, an error Alert with Retry on failure, or the card grid after success.
 
-- [ ] **Step 1: Write the failing loading and error tests**
+- [x] **Step 1: Write the failing loading and error tests**
 
 ```tsx
 it('shows a loading indicator while selected collection bookmarks are requested', () => {
@@ -164,13 +164,13 @@ it('offers Retry after bookmark loading fails', async () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `bun --cwd frontend test -- CollectionDetail.test.tsx`
 
 Expected: FAIL because `getBookmarks` is not a supported prop and request state is absent.
 
-- [ ] **Step 3: Implement request state and API wiring in the parent page**
+- [x] **Step 3: Implement request state and API wiring in the parent page**
 
 ```tsx
 const getBookmarks = useCallback((collectionId: string) => api.get<Bookmark[]>(`/collections/${collectionId}/bookmarks`), [api])
@@ -180,13 +180,13 @@ const getBookmarks = useCallback((collectionId: string) => api.get<Bookmark[]>(`
 
 Inside `CollectionDetail`, start the request in `useEffect` when `collection?.id` changes, ignore stale responses in its cleanup callback, render `<CircularProgress />` while pending, show an `<Alert>` containing the request error and a `Retry` button on rejection, and render `<BookmarkCardGrid bookmarks={bookmarks} />` after success.
 
-- [ ] **Step 4: Run the focused feature tests to verify they pass**
+- [x] **Step 4: Run the focused feature tests to verify they pass**
 
 Run: `bun --cwd frontend test -- CollectionDetail.test.tsx BookmarkCardGrid.test.tsx BookmarkCard.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the integrated collection view**
+- [x] **Step 5: Commit the integrated collection view**
 
 ```bash
 git add frontend/src/routes/CollectionsPage.tsx frontend/src/features/collections/CollectionDetail.tsx frontend/src/features/collections/CollectionDetail.test.tsx
@@ -195,8 +195,8 @@ git commit -m "✨ feat: show collection bookmarks"
 
 ## Verification
 
-- [ ] Run `bun --cwd frontend test -- BookmarkCard.test.tsx BookmarkCardGrid.test.tsx CollectionDetail.test.tsx`.
-- [ ] Run `bun --cwd frontend typecheck`.
+- [x] Run `bun --cwd frontend test -- BookmarkCard.test.tsx BookmarkCardGrid.test.tsx CollectionDetail.test.tsx`.
+- [x] Run `bun --cwd frontend typecheck`.
 - [ ] Open Collections, select a collection with bookmarks, and confirm each card opens its URL in a new tab.
 
 ## Self-review
