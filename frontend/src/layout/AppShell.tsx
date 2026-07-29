@@ -8,6 +8,7 @@ import { NavLink, Outlet } from 'react-router'
 const drawerWidth = 244
 
 const navigation = [
+  { label: 'All bookmarks', to: '/all', icon: <BookmarkBorderIcon /> },
   { label: 'Collections', to: '/collections', icon: <FolderOutlinedIcon /> },
   { label: 'Bookmarks', to: '/bookmarks', icon: <BookmarkBorderIcon /> },
 ]
