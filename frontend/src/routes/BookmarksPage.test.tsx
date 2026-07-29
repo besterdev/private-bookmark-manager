@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import BookmarksPage from './BookmarksPage'
 
@@ -72,4 +72,21 @@ it('keeps creation open and reports a failed bookmark create', async () => {
   expect(await screen.findByText('Unable to save bookmark')).toBeVisible()
   expect(screen.getByRole('dialog', { name: 'Create bookmark' })).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+})
+
+it('combines search with the selected collection filter', async () => {
+  api.get
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+    .mockResolvedValue([])
+  render(<BookmarksPage />)
+
+  await screen.findByRole('heading', { name: 'Bookmarks' })
+  fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Filter collection' }))
+  fireEvent.click(await screen.findByRole('option', { name: 'Design' }))
+  await screen.findByRole('heading', { name: 'Bookmarks' })
+  fireEvent.change(screen.getByLabelText('Search bookmarks'), { target: { value: ' react ' } })
+  fireEvent.submit(screen.getByRole('search'))
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledWith('/bookmarks?collectionId=collection-1&q=react'))
 })

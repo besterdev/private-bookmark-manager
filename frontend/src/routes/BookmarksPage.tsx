@@ -26,6 +26,8 @@ export default function BookmarksPage() {
   const [items, setItems] = useState<Bookmark[]>([])
   const [collections, setCollections] = useState<CollectionOption[]>([])
   const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const [submittedSearch, setSubmittedSearch] = useState('')
   const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<{ message: string; retry: boolean }>()
@@ -41,10 +43,13 @@ export default function BookmarksPage() {
     setError(undefined)
 
     try {
+      const params = new URLSearchParams()
+      if (filter !== 'all' && filter !== 'none') params.set('collectionId', filter)
+      const query = submittedSearch.trim()
+      if (query) params.set('q', query)
+      const bookmarkPath = params.size > 0 ? `/bookmarks?${params.toString()}` : '/bookmarks'
       const [next, options] = await Promise.all([
-        api.get<Bookmark[]>(
-          filter === 'all' || filter === 'none' ? '/bookmarks' : `/bookmarks?collectionId=${filter}`,
-        ),
+        api.get<Bookmark[]>(bookmarkPath),
         api.get<CollectionOption[]>('/collections'),
       ])
       setCollections(options)
@@ -58,7 +63,7 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     void load()
-  }, [api, filter])
+  }, [api, filter, submittedSearch])
 
   const create = async (value: {
     title: string
@@ -107,15 +112,34 @@ export default function BookmarksPage() {
 
       {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
 
-      <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
-        <MenuItem value="all">All bookmarks</MenuItem>
-        <MenuItem value="none">Uncategorized</MenuItem>
-        {collections.map((collection) => (
-          <MenuItem key={collection.id} value={collection.id}>
-            {collection.name}
-          </MenuItem>
-        ))}
-      </TextField>
+      <Stack
+        component="form"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setSubmittedSearch(search)
+        }}
+        role="search"
+        spacing={1.5}
+      >
+        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
+          <TextField
+            fullWidth
+            label="Search bookmarks"
+            onChange={(event) => setSearch(event.target.value)}
+            value={search}
+          />
+          <Button type="submit" variant="contained">Search</Button>
+        </Stack>
+        <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
+          <MenuItem value="all">All bookmarks</MenuItem>
+          <MenuItem value="none">Uncategorized</MenuItem>
+          {collections.map((collection) => (
+            <MenuItem key={collection.id} value={collection.id}>
+              {collection.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Stack>
 
       <BookmarkCardGrid
         collectionNameById={collectionNameById}
