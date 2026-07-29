@@ -83,6 +83,10 @@ it('returns typed response data for GET and POST and resolves DELETE with no con
   await expect(client.post('/collections', { name: 'Work' }))
     .resolves.toEqual({ id: 'collection-1', name: 'Work' })
   await expect(client.delete('/collections/collection-1')).resolves.toBeUndefined()
+
+  expect(axiosState.get).toHaveBeenCalledWith('/me')
+  expect(axiosState.post).toHaveBeenCalledWith('/collections', { name: 'Work' })
+  expect(axiosState.delete).toHaveBeenCalledWith('/collections/collection-1')
 })
 
 it('normalizes Axios HTTP and network failures as ApiError', async () => {
@@ -92,6 +96,15 @@ it('normalizes Axios HTTP and network failures as ApiError', async () => {
     isAxiosError: true,
     response: { status: 401, data: { message: 'Unauthorized' } },
   })).rejects.toMatchObject({ name: 'ApiError', status: 401 })
+
+  await expect(applyResponseRejection({
+    isAxiosError: true,
+    response: { status: 400, data: { message: ['Title is required'] } },
+  })).rejects.toMatchObject({
+    name: 'ApiError',
+    status: 400,
+    message: 'Request failed (400)',
+  })
 
   await expect(applyResponseRejection({
     isAxiosError: true,
