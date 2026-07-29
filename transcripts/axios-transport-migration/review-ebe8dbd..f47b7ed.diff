@@ -1,0 +1,57 @@
+# Review package: ebe8dbd..HEAD
+
+## Commits
+f47b7ed ✅ test: cover Axios client transport errors
+
+## Files changed
+ frontend/src/lib/api-client.test.ts | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+## Diff
+diff --git a/frontend/src/lib/api-client.test.ts b/frontend/src/lib/api-client.test.ts
+index 0351174..d9397c0 100644
+--- a/frontend/src/lib/api-client.test.ts
++++ b/frontend/src/lib/api-client.test.ts
+@@ -76,29 +76,42 @@ it('creates an Axios instance for the configured API and attaches the Auth0 acce
+ it('returns typed response data for GET and POST and resolves DELETE with no content', async () => {
+   const client = createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+   axiosState.get.mockResolvedValue({ data: { id: 'auth0|user-a' } })
+   axiosState.post.mockResolvedValue({ data: { id: 'collection-1', name: 'Work' } })
+   axiosState.delete.mockResolvedValue({})
+ 
+   await expect(client.get('/me')).resolves.toEqual({ id: 'auth0|user-a' })
+   await expect(client.post('/collections', { name: 'Work' }))
+     .resolves.toEqual({ id: 'collection-1', name: 'Work' })
+   await expect(client.delete('/collections/collection-1')).resolves.toBeUndefined()
++
++  expect(axiosState.get).toHaveBeenCalledWith('/me')
++  expect(axiosState.post).toHaveBeenCalledWith('/collections', { name: 'Work' })
++  expect(axiosState.delete).toHaveBeenCalledWith('/collections/collection-1')
+ })
+ 
+ it('normalizes Axios HTTP and network failures as ApiError', async () => {
+   createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+ 
+   await expect(applyResponseRejection({
+     isAxiosError: true,
+     response: { status: 401, data: { message: 'Unauthorized' } },
+   })).rejects.toMatchObject({ name: 'ApiError', status: 401 })
+ 
++  await expect(applyResponseRejection({
++    isAxiosError: true,
++    response: { status: 400, data: { message: ['Title is required'] } },
++  })).rejects.toMatchObject({
++    name: 'ApiError',
++    status: 400,
++    message: 'Request failed (400)',
++  })
++
+   await expect(applyResponseRejection({
+     isAxiosError: true,
+     message: 'Network Error',
+   })).rejects.toMatchObject({
+     name: 'ApiError',
+     status: 0,
+     message: 'Network request failed',
+   })
+ })
