@@ -21,6 +21,7 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then th
 - Preserve desktop permanent navigation and the labelled temporary mobile drawer below `md`; mobile route selection closes the drawer and the current route stays identifiable.
 - Give controls accessible labels, visible keyboard focus, and real behavior. A displayed action must perform its intended behavior or not render; never ship a no-op control.
 - Handle loading, empty, success, validation, and safe error states with the shared state components. Treat API errors as untrusted and avoid displaying sensitive server details.
+- Make changes in an isolated feature worktree, keep commits focused with accurate Gitmoji subjects, and merge only after required checks and review pass with explicit approval.
 
 ## Workflow
 
@@ -29,7 +30,8 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then th
 3. Implement real interactions, including confirmation and safe failure behavior for destructive actions.
 4. Add or update Vitest coverage for accessible controls, navigation, submitted actions, and success/failure states.
 5. Exercise keyboard flow for menus, drawers, dialogs, and actionable controls.
-6. Run focused frontend tests, then lint, typecheck, and build; use the quality-review playbook before merge for UI-impacting changes.
+6. Run focused frontend tests, then lint, typecheck, and build.
+7. Use the quality-review playbook and obtain explicit approval before merging the focused feature-worktree commits.
 
 ## Commands
 
@@ -45,4 +47,4 @@ Use the narrowest affected Vitest file before the broader commands.
 
 ## Definition of done
 
-The UI uses approved tokens and Public Sans, responsive navigation works at desktop and mobile widths, every displayed action is real and accessible, shared states are covered, API boundaries are preserved, and applicable checks have exact reported results.
+The UI uses approved tokens and Public Sans, responsive navigation works at desktop and mobile widths, every displayed action is real and accessible, shared states are covered, API boundaries are preserved, applicable checks have exact reported results, and the focused Gitmoji commits are reviewed and explicitly approved before merge.

@@ -21,6 +21,7 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then in
 - Validate create, replace, patch, and filter input with DTOs and retain the documented error shape.
 - Keep collection deletion behavior: delete the collection, clear `Bookmark.collectionId`, and preserve bookmarks.
 - Keep database access on the backend and document every public HTTP contract in `API_DESIGN.md`.
+- Make changes in an isolated feature worktree, keep commits focused with accurate Gitmoji subjects, and merge only after required checks and review pass with explicit approval.
 
 ## Workflow
 
@@ -30,6 +31,7 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then in
 4. Add unit or integration coverage for valid input, invalid input, and two-user isolation.
 5. Confirm User A cannot list, read, create against, update, delete, filter, or infer User B's collections or bookmarks.
 6. Run focused backend checks, then applicable workspace checks, and report exact outcomes.
+7. Request review and explicit approval before merging the focused feature-worktree commits.
 
 ## Commands
 
@@ -46,4 +48,4 @@ Use the narrowest affected test file or suite before the broader commands.
 
 ## Definition of done
 
-Auth0 identity is validated from `sub`, all resource access is owner-scoped, foreign access returns `404`, DTO validation and API documentation match behavior, two-user tests cover isolation, and applicable checks have exact reported results.
+Auth0 identity is validated from `sub`, all resource access is owner-scoped, foreign access returns `404`, DTO validation and API documentation match behavior, two-user tests cover isolation, applicable checks have exact reported results, and the focused Gitmoji commits are reviewed and explicitly approved before merge.

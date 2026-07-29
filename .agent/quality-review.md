@@ -26,14 +26,15 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then th
 2. Check privacy: validated Auth0 identity, owner-scoped access, `404` privacy behavior, DTO validation, and two-user coverage where backend behavior changed.
 3. Check frontend behavior: mobile route access and drawer close/dismiss flow, Public Sans availability, approved tokens, visible focus, keyboard navigation, shared loading/empty/error states, and inactive or no-op controls.
 4. Check API and documentation alignment, including collection deletion behavior and exact endpoint/error claims.
-5. Run the narrowest relevant test first, then lint, typecheck, relevant unit or E2E suites, and build.
+5. Run the narrowest relevant test first, then only the non-mutating lint commands below, typecheck, relevant unit or E2E suites, and build.
 6. Return findings ordered by severity with file and line evidence, followed by exact passed, failed, and skipped command outcomes.
 
 ## Commands
 
 ```bash
 git diff main...HEAD --check
-bun run lint
+bun --cwd frontend lint
+bun --cwd backend x eslint "{src,apps,libs,test}/**/*.ts"
 bun run typecheck
 bun run test
 bun run test:e2e
