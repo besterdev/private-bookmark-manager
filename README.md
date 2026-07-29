@@ -98,8 +98,8 @@ See [API_DESIGN.md](API_DESIGN.md) and [DECISIONS.md](DECISIONS.md) for the deta
 
 ## Intentional exclusions
 
-- Collection sharing is not implemented; all resources are private to their authenticated owner.
-- CI, full-text bookmark search, and an aggregate `/all` UI are not included in this submission.
+- Collection sharing is intentionally deferred; all resources remain private to their authenticated owner. See ADR-003 in [DECISIONS.md](DECISIONS.md).
+- CI is not included in this submission.
 
 ## Evidence
 

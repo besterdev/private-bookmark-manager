@@ -40,7 +40,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Define resource ownership and 404 behaviour for inaccessible resources
 - [x] Create `DECISIONS.md`
 - [x] Decide collection deletion behaviour
-- [ ] Decide whether and how collection sharing is supported
+- [x] Decide whether and how collection sharing is supported (intentionally deferred in ADR-003)
 
 ## Backend - authentication and data
 

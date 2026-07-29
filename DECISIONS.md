@@ -15,3 +15,11 @@
 **Rationale:** A collection is organization metadata; a user's saved bookmark remains valuable without it.
 
 **Trade-off:** The product must provide an uncategorized bookmarks view.
+
+## ADR-003: Defer collection sharing
+
+**Decision:** Collection sharing is not implemented. Collections and their bookmarks remain accessible only to the authenticated owner.
+
+**Rationale:** Sharing would replace the current owner-only authorization rule with a permission model covering membership, roles, invitations, revocation, and inherited bookmark access. Shipping that model without its complete authorization matrix would weaken the application's central privacy invariant.
+
+**Trade-off:** Users cannot collaborate on collections. A future implementation should begin with an explicit membership model, owner-managed viewer access, owner-scoped invitation rules, revocation behavior, and authorization tests for owners, members, and non-members before adding sharing UI.
