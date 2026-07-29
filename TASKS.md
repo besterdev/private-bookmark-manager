@@ -15,7 +15,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] `feat/frontend-bookmarks`
 - [x] `test/authorization-integration`
 - [x] `test/private-bookmark-e2e`
-- [ ] `docs/submission-evidence`
+- [x] `docs/submission-evidence`
 
 ## Project setup
 
@@ -123,13 +123,13 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 
 ## Submission and delivery
 
-- [ ] Create `AI_WORKFLOW.md`
-- [ ] Save real prompt and agent session logs in `transcripts/` with secrets redacted
-- [ ] Create `README.md` with setup, run, and test instructions
-- [ ] Document completed and skipped work in README
-- [ ] Verify API documentation matches implementation and tests
-- [ ] Run lint, typecheck, unit/integration tests, E2E tests, and production builds
-- [ ] Review commit history for meaningful incremental commits
+- [x] Create `AI_WORKFLOW.md`
+- [x] Save real prompt and agent session logs in `transcripts/` with secrets redacted
+- [x] Create `README.md` with setup, run, and test instructions
+- [x] Document completed and skipped work in README
+- [x] Verify API documentation matches implementation and tests
+- [x] Run lint, typecheck, unit/integration tests, E2E tests, and production builds
+- [x] Review commit history for meaningful incremental commits
 
 ## Optional bonuses
 
