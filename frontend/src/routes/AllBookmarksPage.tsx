@@ -35,8 +35,8 @@ export default function AllBookmarksPage() {
       ])
       setCollections(nextCollections)
       setItems(nextItems)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
+    } catch {
+      setError({ message: 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
@@ -60,6 +60,8 @@ export default function AllBookmarksPage() {
 
   const remove = async () => {
     if (!bookmarkToDelete) return
+
+    setError(undefined)
 
     try {
       await api.delete(`/bookmarks/${bookmarkToDelete.id}`)

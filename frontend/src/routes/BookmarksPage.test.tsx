@@ -7,9 +7,10 @@ const api = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
 }))
+const getAccessTokenSilently = vi.hoisted(() => vi.fn().mockResolvedValue('access-token'))
 
 vi.mock('@auth0/auth0-react', () => ({
-  useAuth0: () => ({ getAccessTokenSilently: vi.fn().mockResolvedValue('access-token') }),
+  useAuth0: () => ({ getAccessTokenSilently }),
 }))
 
 vi.mock('../lib/api-client', () => ({
@@ -76,6 +77,44 @@ it('keeps the bookmark and shows a safe error when deletion fails', async () => 
   expect(screen.queryByText('Internal SQL error: ownerId=auth0|victim')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: /MUI/i })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+})
+
+it('clears a previous delete error after a successful retry', async () => {
+  let resolveRetry!: () => void
+  const retry = new Promise<void>((resolve) => {
+    resolveRetry = resolve
+  })
+  api.get
+    .mockResolvedValueOnce([
+      {
+        id: 'bookmark-1',
+        title: 'MUI',
+        url: 'https://mui.com',
+        notes: null,
+        collectionId: 'collection-1',
+        createdAt: '2026-07-28T00:00:00.000Z',
+        updatedAt: '2026-07-28T00:00:00.000Z',
+      },
+    ])
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+  api.delete
+    .mockRejectedValueOnce(new Error('first attempt failed'))
+    .mockReturnValueOnce(retry)
+
+  render(<BookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete bookmark')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  await waitFor(() => expect(api.delete).toHaveBeenCalledTimes(2))
+  expect(screen.queryByText('Unable to delete bookmark')).not.toBeInTheDocument()
+
+  resolveRetry()
+  await waitFor(() => expect(screen.queryByRole('link', { name: /MUI/i })).not.toBeInTheDocument())
 })
 
 it('retries a failed bookmark request', async () => {

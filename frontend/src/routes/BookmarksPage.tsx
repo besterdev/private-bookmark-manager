@@ -81,6 +81,8 @@ export default function BookmarksPage() {
   const remove = async () => {
     if (!bookmarkToDelete) return
 
+    setError(undefined)
+
     try {
       await api.delete(`/bookmarks/${bookmarkToDelete.id}`)
       setItems((current) => current.filter((item) => item.id !== bookmarkToDelete.id))

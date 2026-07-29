@@ -3,9 +3,10 @@ import { afterEach, expect, it, vi } from 'vitest'
 import AllBookmarksPage from './AllBookmarksPage'
 
 const api = vi.hoisted(() => ({ delete: vi.fn(), get: vi.fn() }))
+const getAccessTokenSilently = vi.hoisted(() => vi.fn().mockResolvedValue('access-token'))
 
 vi.mock('@auth0/auth0-react', () => ({
-  useAuth0: () => ({ getAccessTokenSilently: vi.fn().mockResolvedValue('access-token') }),
+  useAuth0: () => ({ getAccessTokenSilently }),
 }))
 
 vi.mock('../lib/api-client', () => ({ createApiClient: () => api }))
@@ -58,6 +59,15 @@ it('shows a search-aware empty state when no bookmarks match', async () => {
   expect(await screen.findByText('No bookmarks match your search.')).toBeVisible()
 })
 
+it('shows a safe message when loading bookmarks fails', async () => {
+  api.get.mockRejectedValue(new Error('Database connection failed: password=super-secret'))
+
+  render(<AllBookmarksPage />)
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load bookmarks')
+  expect(screen.queryByText('Database connection failed: password=super-secret')).not.toBeInTheDocument()
+})
+
 it('deletes a bookmark after confirmation and removes its card', async () => {
   api.get
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
@@ -88,6 +98,34 @@ it('keeps the bookmark when deletion fails and shows a safe non-retryable error'
   expect(screen.queryByText('Internal SQL error: ownerId=auth0|victim')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: /MUI/i })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+})
+
+it('clears a previous delete error after a successful retry', async () => {
+  let resolveRetry!: () => void
+  const retry = new Promise<void>((resolve) => {
+    resolveRetry = resolve
+  })
+  api.get
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
+  api.delete
+    .mockRejectedValueOnce(new Error('first attempt failed'))
+    .mockReturnValueOnce(retry)
+
+  render(<AllBookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete bookmark')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  await waitFor(() => expect(api.delete).toHaveBeenCalledTimes(2))
+  expect(screen.queryByText('Unable to delete bookmark')).not.toBeInTheDocument()
+
+  resolveRetry()
+  await waitFor(() => expect(screen.queryByRole('link', { name: /MUI/i })).not.toBeInTheDocument())
 })
 
 function bookmark(overrides: Partial<{ id: string; collectionId: string | null; title: string }> = {}) {
