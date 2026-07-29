@@ -51,3 +51,19 @@ it('closes mobile navigation after choosing All bookmarks', async () => {
 
   await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
 })
+
+it('styles both mobile navigation controls in MUI keyboard-focus state', async () => {
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
+
+  const openNavigation = screen.getByRole('button', { name: 'Open navigation' })
+  openNavigation.classList.add('Mui-focusVisible')
+
+  expect(openNavigation).toHaveStyle({ outline: '3px solid #FF6E00', outlineOffset: '2px' })
+
+  fireEvent.click(openNavigation)
+  const closeNavigation = screen.getByRole('button', { name: 'Close navigation' })
+  closeNavigation.classList.add('Mui-focusVisible')
+
+  expect(closeNavigation).toHaveStyle({ outline: '3px solid #FF6E00', outlineOffset: '2px' })
+})

@@ -9,6 +9,7 @@ import { NavLink, Outlet } from 'react-router'
 import { useState } from 'react'
 
 const drawerWidth = 244
+const navigationIconButtonFocus = { outline: '3px solid #FF6E00', outlineOffset: 2 }
 
 const navigation = [
   { label: 'All bookmarks', to: '/all', icon: <BookmarkBorderIcon /> },
@@ -37,7 +38,7 @@ export default function AppShell() {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar color="inherit" elevation={0} position="fixed" sx={{ borderBottom: 1, borderColor: 'divider', ml: { md: `${drawerWidth}px` }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
         <Toolbar sx={{ gap: 1 }}>
-          <IconButton aria-label="Open navigation" color="inherit" onClick={() => setMobileOpen(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
+          <IconButton aria-label="Open navigation" color="inherit" onClick={() => setMobileOpen(true)} sx={{ '&.Mui-focusVisible': navigationIconButtonFocus, display: { xs: 'inline-flex', md: 'none' } }}>
             <MenuIcon />
           </IconButton>
           <Typography component="h1" noWrap variant="h6" sx={{ flexGrow: 1, fontWeight: 700, minWidth: 0 }}>Private Bookmark Manager</Typography>
@@ -51,7 +52,7 @@ export default function AppShell() {
       <Drawer onClose={() => setMobileOpen(false)} open={mobileOpen} sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }} variant="temporary">
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography color="primary" variant="h6">Bookmarks</Typography>
-          <IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)}><CloseIcon /></IconButton>
+          <IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)} sx={{ '&.Mui-focusVisible': navigationIconButtonFocus }}><CloseIcon /></IconButton>
         </Toolbar>
         <Box component="nav" aria-label="Mobile navigation"><NavigationList onNavigate={() => setMobileOpen(false)} /></Box>
       </Drawer>
