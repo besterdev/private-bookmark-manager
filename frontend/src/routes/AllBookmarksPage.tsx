@@ -6,6 +6,7 @@ import EmptyState from '../components/states/EmptyState'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
+import BookmarkDeleteDialog from '../features/bookmarks/BookmarkDeleteDialog'
 import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
 import { createApiClient } from '../lib/api-client'
@@ -17,8 +18,9 @@ export default function AllBookmarksPage() {
   const [collections, setCollections] = useState<CollectionOption[]>([])
   const [search, setSearch] = useState('')
   const [submittedSearch, setSubmittedSearch] = useState('')
+  const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>()
+  const [error, setError] = useState<{ message: string; retry: boolean }>()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -34,7 +36,7 @@ export default function AllBookmarksPage() {
       setCollections(nextCollections)
       setItems(nextItems)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to load bookmarks')
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
@@ -56,6 +58,19 @@ export default function AllBookmarksPage() {
   )
   const uncategorised = useMemo(() => items.filter((item) => item.collectionId === null), [items])
 
+  const remove = async () => {
+    if (!bookmarkToDelete) return
+
+    try {
+      await api.delete(`/bookmarks/${bookmarkToDelete.id}`)
+      setItems((current) => current.filter((item) => item.id !== bookmarkToDelete.id))
+      setBookmarkToDelete(undefined)
+    } catch (cause) {
+      setError({ message: cause instanceof Error ? cause.message : 'Unable to delete bookmark', retry: false })
+      setBookmarkToDelete(undefined)
+    }
+  }
+
   if (loading) return <LoadingState label="Loading all bookmarks" />
 
   return (
@@ -65,7 +80,7 @@ export default function AllBookmarksPage() {
         <Typography color="text.secondary">Browse every saved link by collection.</Typography>
       </Box>
 
-      {error && <ErrorState message={error} onRetry={() => void load()} />}
+      {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
 
       <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search} />
 
@@ -79,17 +94,23 @@ export default function AllBookmarksPage() {
           {groups.map(({ collection, items: groupItems }) => (
             <Stack component="section" key={collection.id} spacing={1.5}>
               <Typography component="h3" variant="h5">{collection.name}</Typography>
-              <BookmarkCardGrid collectionNameById={collectionNameById} items={groupItems} onDelete={() => undefined} />
+              <BookmarkCardGrid collectionNameById={collectionNameById} items={groupItems} onDelete={setBookmarkToDelete} />
             </Stack>
           ))}
           {uncategorised.length > 0 && (
             <Stack component="section" spacing={1.5}>
               <Typography component="h3" variant="h5">Uncategorised</Typography>
-              <BookmarkCardGrid collectionNameById={collectionNameById} items={uncategorised} onDelete={() => undefined} />
+              <BookmarkCardGrid collectionNameById={collectionNameById} items={uncategorised} onDelete={setBookmarkToDelete} />
             </Stack>
           )}
         </Stack>
       )}
+
+      <BookmarkDeleteDialog
+        bookmark={bookmarkToDelete}
+        onCancel={() => setBookmarkToDelete(undefined)}
+        onConfirm={() => void remove()}
+      />
     </Stack>
   )
 }

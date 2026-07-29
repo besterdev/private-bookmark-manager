@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, expect, it, vi } from 'vitest'
 import AllBookmarksPage from './AllBookmarksPage'
 
-const api = vi.hoisted(() => ({ get: vi.fn() }))
+const api = vi.hoisted(() => ({ delete: vi.fn(), get: vi.fn() }))
 
 vi.mock('@auth0/auth0-react', () => ({
   useAuth0: () => ({ getAccessTokenSilently: vi.fn().mockResolvedValue('access-token') }),
@@ -12,6 +12,7 @@ vi.mock('../lib/api-client', () => ({ createApiClient: () => api }))
 
 afterEach(() => {
   cleanup()
+  api.delete.mockReset()
   api.get.mockReset()
 })
 
@@ -55,6 +56,37 @@ it('shows a search-aware empty state when no bookmarks match', async () => {
   fireEvent.submit(screen.getByRole('search'))
 
   expect(await screen.findByText('No bookmarks match your search.')).toBeVisible()
+})
+
+it('deletes a bookmark after confirmation and removes its card', async () => {
+  api.get
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
+  api.delete.mockResolvedValueOnce(undefined)
+
+  render(<AllBookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/bookmarks/bookmark-1'))
+  expect(screen.queryByRole('link', { name: /MUI/i })).not.toBeInTheDocument()
+})
+
+it('keeps the bookmark when deletion fails and shows a safe non-retryable error', async () => {
+  api.get
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
+  api.delete.mockRejectedValueOnce(new Error('Unable to delete bookmark'))
+
+  render(<AllBookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete bookmark')
+  expect(screen.getByRole('link', { name: /MUI/i })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
 })
 
 function bookmark(overrides: Partial<{ id: string; collectionId: string | null; title: string }> = {}) {

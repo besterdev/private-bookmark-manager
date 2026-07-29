@@ -3,10 +3,6 @@ import { Add } from '@mui/icons-material'
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   MenuItem,
   Stack,
   TextField,
@@ -16,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
+import BookmarkDeleteDialog from '../features/bookmarks/BookmarkDeleteDialog'
 import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
 import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
@@ -90,6 +87,7 @@ export default function BookmarksPage() {
       setBookmarkToDelete(undefined)
     } catch (cause) {
       setError({ message: cause instanceof Error ? cause.message : 'Unable to delete bookmark', retry: false })
+      setBookmarkToDelete(undefined)
     }
   }
 
@@ -138,16 +136,11 @@ export default function BookmarksPage() {
         open={createOpen}
       />
 
-      <Dialog onClose={() => setBookmarkToDelete(undefined)} open={Boolean(bookmarkToDelete)}>
-        <DialogTitle>Delete bookmark?</DialogTitle>
-        <DialogContent>This cannot be undone.</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBookmarkToDelete(undefined)}>Cancel</Button>
-          <Button color="error" onClick={() => void remove()}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <BookmarkDeleteDialog
+        bookmark={bookmarkToDelete}
+        onCancel={() => setBookmarkToDelete(undefined)}
+        onConfirm={() => void remove()}
+      />
     </Stack>
   )
 }

@@ -23,7 +23,7 @@ afterEach(() => {
   api.post.mockReset()
 })
 
-it('renders bookmarks as cards and opens their delete confirmation', async () => {
+it('deletes a bookmark after confirmation', async () => {
   api.get
     .mockResolvedValueOnce([
       {
@@ -37,6 +37,7 @@ it('renders bookmarks as cards and opens their delete confirmation', async () =>
       },
     ])
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+  api.delete.mockResolvedValueOnce(undefined)
 
   render(<BookmarksPage />)
 
@@ -44,6 +45,36 @@ it('renders bookmarks as cards and opens their delete confirmation', async () =>
   fireEvent.click(screen.getByRole('button', { name: 'Delete bookmark' }))
 
   expect(screen.getByRole('heading', { name: 'Delete bookmark?' })).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/bookmarks/bookmark-1'))
+  expect(screen.queryByRole('link', { name: /MUI/i })).not.toBeInTheDocument()
+})
+
+it('keeps the bookmark and shows a safe error when deletion fails', async () => {
+  api.get
+    .mockResolvedValueOnce([
+      {
+        id: 'bookmark-1',
+        title: 'MUI',
+        url: 'https://mui.com',
+        notes: null,
+        collectionId: 'collection-1',
+        createdAt: '2026-07-28T00:00:00.000Z',
+        updatedAt: '2026-07-28T00:00:00.000Z',
+      },
+    ])
+    .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+  api.delete.mockRejectedValueOnce(new Error('Unable to delete bookmark'))
+
+  render(<BookmarksPage />)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete bookmark' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete bookmark')
+  expect(screen.getByRole('link', { name: /MUI/i })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
 })
 
 it('retries a failed bookmark request', async () => {
