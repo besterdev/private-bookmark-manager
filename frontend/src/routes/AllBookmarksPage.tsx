@@ -1,12 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import { Search } from '@mui/icons-material'
-import { Box, Button, Stack, TextField, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import EmptyState from '../components/states/EmptyState'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
+import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
 import { createApiClient } from '../lib/api-client'
 
@@ -67,24 +67,7 @@ export default function AllBookmarksPage() {
 
       {error && <ErrorState message={error} onRetry={() => void load()} />}
 
-      <Box
-        component="form"
-        onSubmit={(event) => {
-          event.preventDefault()
-          setSubmittedSearch(search)
-        }}
-        role="search"
-      >
-        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
-          <TextField
-            fullWidth
-            label="Search bookmarks"
-            onChange={(event) => setSearch(event.target.value)}
-            value={search}
-          />
-          <Button startIcon={<Search />} type="submit" variant="contained">Search</Button>
-        </Stack>
-      </Box>
+      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search} />
 
       {items.length === 0 ? (
         <EmptyState

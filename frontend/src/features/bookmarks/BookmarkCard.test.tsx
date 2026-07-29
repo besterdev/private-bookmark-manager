@@ -16,6 +16,16 @@ it('opens the bookmark from its card action area in a new tab safely', () => {
   expect(link).toHaveAttribute('rel', 'noreferrer')
 })
 
+it('labels its branded fallback visual without taking keyboard focus from the external link', () => {
+  render(<BookmarkCard bookmark={bookmark} collectionName="Design" onDelete={vi.fn()} />)
+
+  expect(screen.getByRole('img', { name: 'Bookmark preview for MUI' })).toBeVisible()
+
+  const link = screen.getByRole('link', { name: /mui/i })
+  link.focus()
+  expect(link).toHaveFocus()
+})
+
 it('passes its bookmark to the delete action', () => {
   const onDelete = vi.fn()
   render(<BookmarkCard bookmark={bookmark} collectionName="Design" onDelete={onDelete} />)

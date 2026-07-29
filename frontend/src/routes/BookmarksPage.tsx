@@ -17,6 +17,7 @@ import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
 import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
+import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
 import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
 import { createApiClient } from '../lib/api-client'
 
@@ -112,24 +113,7 @@ export default function BookmarksPage() {
 
       {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
 
-      <Stack
-        component="form"
-        onSubmit={(event) => {
-          event.preventDefault()
-          setSubmittedSearch(search)
-        }}
-        role="search"
-        spacing={1.5}
-      >
-        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
-          <TextField
-            fullWidth
-            label="Search bookmarks"
-            onChange={(event) => setSearch(event.target.value)}
-            value={search}
-          />
-          <Button type="submit" variant="contained">Search</Button>
-        </Stack>
+      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search}>
         <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
           <MenuItem value="all">All bookmarks</MenuItem>
           <MenuItem value="none">Uncategorized</MenuItem>
@@ -139,7 +123,7 @@ export default function BookmarksPage() {
             </MenuItem>
           ))}
         </TextField>
-      </Stack>
+      </BookmarkSearchToolbar>
 
       <BookmarkCardGrid
         collectionNameById={collectionNameById}
