@@ -1,0 +1,136 @@
+# Review package: e0aece7e348046d83ceb5dbf4f94013c99e57294..HEAD
+
+## Commits
+3d6f89c 📝 docs: make agent review workflow safe
+
+## Files changed
+ .agent/backend-api-security.md | 4 +++-
+ .agent/frontend-ui-tests.md    | 6 ++++--
+ .agent/quality-review.md       | 5 +++--
+ 3 files changed, 10 insertions(+), 5 deletions(-)
+
+## Diff
+diff --git a/.agent/backend-api-security.md b/.agent/backend-api-security.md
+index 2139dc6..0e82611 100644
+--- a/.agent/backend-api-security.md
++++ b/.agent/backend-api-security.md
+@@ -14,36 +14,38 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then in
+ 
+ ## Guardrails
+ 
+ - Use Bun and strict TypeScript; never expose secrets, tokens, or database credentials.
+ - Require a validated Auth0 **access token**, not an ID token. Verify issuer, audience, RS256 signature through JWKS, expiry, algorithm, and a non-empty `sub`.
+ - Derive the authenticated owner only from the validated Auth0 `sub`; never accept `ownerId` from request input.
+ - Include owner scope in every Prisma read and mutation. Foreign or missing resources must return the same `404` behavior so existence cannot be inferred.
+ - Validate create, replace, patch, and filter input with DTOs and retain the documented error shape.
+ - Keep collection deletion behavior: delete the collection, clear `Bookmark.collectionId`, and preserve bookmarks.
+ - Keep database access on the backend and document every public HTTP contract in `API_DESIGN.md`.
++- Make changes in an isolated feature worktree, keep commits focused with accurate Gitmoji subjects, and merge only after required checks and review pass with explicit approval.
+ 
+ ## Workflow
+ 
+ 1. Define the requested behavior, ownership rule, validation rule, and failure response.
+ 2. Update `API_DESIGN.md` and `DECISIONS.md` when a contract or decision changes.
+ 3. Implement authenticated controller and service behavior with owner-scoped Prisma queries.
+ 4. Add unit or integration coverage for valid input, invalid input, and two-user isolation.
+ 5. Confirm User A cannot list, read, create against, update, delete, filter, or infer User B's collections or bookmarks.
+ 6. Run focused backend checks, then applicable workspace checks, and report exact outcomes.
++7. Request review and explicit approval before merging the focused feature-worktree commits.
+ 
+ ## Commands
+ 
+ ```bash
+ bun --cwd backend test
+ bun --cwd backend run lint
+ bun --cwd backend run typecheck
+ bun run test
+ bun run test:e2e
+ bun run build
+ ```
+ 
+ Use the narrowest affected test file or suite before the broader commands.
+ 
+ ## Definition of done
+ 
+-Auth0 identity is validated from `sub`, all resource access is owner-scoped, foreign access returns `404`, DTO validation and API documentation match behavior, two-user tests cover isolation, and applicable checks have exact reported results.
++Auth0 identity is validated from `sub`, all resource access is owner-scoped, foreign access returns `404`, DTO validation and API documentation match behavior, two-user tests cover isolation, applicable checks have exact reported results, and the focused Gitmoji commits are reviewed and explicitly approved before merge.
+diff --git a/.agent/frontend-ui-tests.md b/.agent/frontend-ui-tests.md
+index d07748b..acdb4a8 100644
+--- a/.agent/frontend-ui-tests.md
++++ b/.agent/frontend-ui-tests.md
+@@ -14,35 +14,37 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then th
+ 
+ ## Guardrails
+ 
+ - Use Bun and strict TypeScript; never expose secrets or log Auth0 access tokens in the browser.
+ - Keep routes thin and feature logic in `frontend/src/features/<feature>`; call documented HTTP endpoints only. Never access Prisma or the database from the frontend.
+ - Preserve the approved brand tokens: Smalt blue `#003399`, Blaze orange `#FF6E00`, Mine Shaft `#3F3F3F`, light surfaces, subtle borders, restrained shadows, and generous spacing.
+ - Load and apply Public Sans through the shared MUI theme. Use existing Minimal-inspired MUI patterns and shared component overrides rather than page-specific visual drift.
+ - Preserve desktop permanent navigation and the labelled temporary mobile drawer below `md`; mobile route selection closes the drawer and the current route stays identifiable.
+ - Give controls accessible labels, visible keyboard focus, and real behavior. A displayed action must perform its intended behavior or not render; never ship a no-op control.
+ - Handle loading, empty, success, validation, and safe error states with the shared state components. Treat API errors as untrusted and avoid displaying sensitive server details.
++- Make changes in an isolated feature worktree, keep commits focused with accurate Gitmoji subjects, and merge only after required checks and review pass with explicit approval.
+ 
+ ## Workflow
+ 
+ 1. Confirm the API contract and approved design rules before implementation.
+ 2. Keep query and API-request state owned by the relevant route; extract only presentational shared UI where it has a current use.
+ 3. Implement real interactions, including confirmation and safe failure behavior for destructive actions.
+ 4. Add or update Vitest coverage for accessible controls, navigation, submitted actions, and success/failure states.
+ 5. Exercise keyboard flow for menus, drawers, dialogs, and actionable controls.
+-6. Run focused frontend tests, then lint, typecheck, and build; use the quality-review playbook before merge for UI-impacting changes.
++6. Run focused frontend tests, then lint, typecheck, and build.
++7. Use the quality-review playbook and obtain explicit approval before merging the focused feature-worktree commits.
+ 
+ ## Commands
+ 
+ ```bash
+ bun --cwd frontend test
+ bun --cwd frontend lint
+ bun --cwd frontend typecheck
+ bun --cwd frontend build
+ bun run test:e2e
+ ```
+ 
+ Use the narrowest affected Vitest file before the broader commands.
+ 
+ ## Definition of done
+ 
+-The UI uses approved tokens and Public Sans, responsive navigation works at desktop and mobile widths, every displayed action is real and accessible, shared states are covered, API boundaries are preserved, and applicable checks have exact reported results.
++The UI uses approved tokens and Public Sans, responsive navigation works at desktop and mobile widths, every displayed action is real and accessible, shared states are covered, API boundaries are preserved, applicable checks have exact reported results, and the focused Gitmoji commits are reviewed and explicitly approved before merge.
+diff --git a/.agent/quality-review.md b/.agent/quality-review.md
+index 89b1b64..f1886b4 100644
+--- a/.agent/quality-review.md
++++ b/.agent/quality-review.md
+@@ -19,28 +19,29 @@ Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then th
+ - Prioritise actionable privacy and security findings before lower-risk UI or maintainability observations.
+ - Report exact command outcomes as passed, failed, or skipped; do not describe an unrun command as verified.
+ - Preserve feature-worktree, focused-Gitmoji-commit, and explicit-approval-before-merge workflow.
+ 
+ ## Workflow
+ 
+ 1. Inspect the diff against `main`, the affected contract, decisions, and tests.
+ 2. Check privacy: validated Auth0 identity, owner-scoped access, `404` privacy behavior, DTO validation, and two-user coverage where backend behavior changed.
+ 3. Check frontend behavior: mobile route access and drawer close/dismiss flow, Public Sans availability, approved tokens, visible focus, keyboard navigation, shared loading/empty/error states, and inactive or no-op controls.
+ 4. Check API and documentation alignment, including collection deletion behavior and exact endpoint/error claims.
+-5. Run the narrowest relevant test first, then lint, typecheck, relevant unit or E2E suites, and build.
++5. Run the narrowest relevant test first, then only the non-mutating lint commands below, typecheck, relevant unit or E2E suites, and build.
+ 6. Return findings ordered by severity with file and line evidence, followed by exact passed, failed, and skipped command outcomes.
+ 
+ ## Commands
+ 
+ ```bash
+ git diff main...HEAD --check
+-bun run lint
++bun --cwd frontend lint
++bun --cwd backend x eslint "{src,apps,libs,test}/**/*.ts"
+ bun run typecheck
+ bun run test
+ bun run test:e2e
+ bun run build
+ ```
+ 
+ Run only relevant commands after the narrowest affected test, and mark unavailable or inapplicable commands as skipped with a reason.
+ 
+ ## Definition of done
+ 

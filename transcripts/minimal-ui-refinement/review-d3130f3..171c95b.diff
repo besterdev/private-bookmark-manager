@@ -1,0 +1,144 @@
+# Review package: d3130f3c40f16d503ccc40cdb8a7354b3d0a7706..HEAD
+
+## Commits
+171c95b ✨ feat: add responsive app navigation
+
+## Files changed
+ frontend/src/App.test.tsx        | 32 ++++++++++++++++++++++++++++++--
+ frontend/src/layout/AppShell.tsx | 39 ++++++++++++++++++++++++++++++++-------
+ 2 files changed, 62 insertions(+), 9 deletions(-)
+
+## Diff
+diff --git a/frontend/src/App.test.tsx b/frontend/src/App.test.tsx
+index 28026cf..be88b5c 100644
+--- a/frontend/src/App.test.tsx
++++ b/frontend/src/App.test.tsx
+@@ -1,25 +1,53 @@
+-import { render, screen } from '@testing-library/react'
+-import { expect, it, vi } from 'vitest'
++import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
++import { afterEach, expect, it, vi } from 'vitest'
+ import App from './App'
+ 
+ vi.mock('@auth0/auth0-react', () => ({
+   useAuth0: () => ({
+     isLoading: false,
+     isAuthenticated: true,
+     getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
+     user: { name: 'Candidate' },
+     logout: vi.fn(),
+   }),
+ }))
+ 
+ vi.mock('./lib/api-client', () => ({
+   createApiClient: () => ({ get: vi.fn().mockResolvedValue([]) }),
+ }))
+ 
++afterEach(cleanup)
++
+ it('renders the shell heading and primary navigation after API access is verified', async () => {
+   render(<App />)
+ 
+   expect(await screen.findByRole('heading', { name: 'Private Bookmark Manager' })).toBeVisible()
+   expect(screen.getByRole('link', { name: 'Collections' })).toBeVisible()
+   expect(screen.getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+ })
++
++it('opens mobile navigation with all application routes and closes it with the close button', async () => {
++  render(<App />)
++  await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
++
++  fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
++
++  const mobileNavigation = screen.getByRole('navigation', { name: 'Mobile navigation' })
++  expect(within(mobileNavigation).getByRole('link', { name: 'All bookmarks' })).toBeVisible()
++  expect(within(mobileNavigation).getByRole('link', { name: 'Collections' })).toBeVisible()
++  expect(within(mobileNavigation).getByRole('link', { name: 'Bookmarks' })).toBeVisible()
++
++  fireEvent.click(screen.getByRole('button', { name: 'Close navigation' }))
++
++  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
++})
++
++it('closes mobile navigation after choosing All bookmarks', async () => {
++  render(<App />)
++  await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
++
++  fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
++  fireEvent.click(screen.getAllByRole('link', { name: 'All bookmarks' }).at(-1)!)
++
++  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
++})
+diff --git a/frontend/src/layout/AppShell.tsx b/frontend/src/layout/AppShell.tsx
+index d883975..f0385dc 100644
+--- a/frontend/src/layout/AppShell.tsx
++++ b/frontend/src/layout/AppShell.tsx
+@@ -1,36 +1,61 @@
+ import { useAuth0 } from '@auth0/auth0-react'
+ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
++import CloseIcon from '@mui/icons-material/Close'
+ import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined'
+ import LogoutIcon from '@mui/icons-material/Logout'
+-import { AppBar, Box, Button, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material'
++import MenuIcon from '@mui/icons-material/Menu'
++import { AppBar, Box, Button, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material'
+ import { NavLink, Outlet } from 'react-router'
++import { useState } from 'react'
+ 
+ const drawerWidth = 244
+ 
+ const navigation = [
+   { label: 'All bookmarks', to: '/all', icon: <BookmarkBorderIcon /> },
+   { label: 'Collections', to: '/collections', icon: <FolderOutlinedIcon /> },
+   { label: 'Bookmarks', to: '/bookmarks', icon: <BookmarkBorderIcon /> },
+ ]
+ 
++function NavigationList({ onNavigate }: { onNavigate?: () => void }) {
++  return (
++    <List sx={{ px: 1 }}>
++      {navigation.map(({ label, to, icon }) => (
++        <ListItemButton component={NavLink} key={to} onClick={onNavigate} to={to} sx={{ borderRadius: 1.5, mb: 0.5, '&.active': { bgcolor: 'primary.main', color: 'primary.contrastText', '& .MuiListItemIcon-root': { color: 'inherit' } } }}>
++          <ListItemIcon>{icon}</ListItemIcon>
++          <ListItemText primary={label} />
++        </ListItemButton>
++      ))}
++    </List>
++  )
++}
++
+ export default function AppShell() {
+   const { user, logout } = useAuth0()
++  const [mobileOpen, setMobileOpen] = useState(false)
+ 
+   return (
+     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+       <AppBar color="inherit" elevation={0} position="fixed" sx={{ borderBottom: 1, borderColor: 'divider', ml: { md: `${drawerWidth}px` }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+-          <Typography component="h1" variant="h6" sx={{ fontWeight: 700 }}>Private Bookmark Manager</Typography>
+-          <Button color="inherit" endIcon={<LogoutIcon />} onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>{user?.name ?? user?.email ?? 'Account'}</Button>
++        <Toolbar sx={{ gap: 1 }}>
++          <IconButton aria-label="Open navigation" color="inherit" onClick={() => setMobileOpen(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
++            <MenuIcon />
++          </IconButton>
++          <Typography component="h1" noWrap variant="h6" sx={{ flexGrow: 1, fontWeight: 700, minWidth: 0 }}>Private Bookmark Manager</Typography>
++          <Button color="inherit" endIcon={<LogoutIcon />} onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })} sx={{ flexShrink: 0, maxWidth: { xs: 120, sm: 'none' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name ?? user?.email ?? 'Account'}</Button>
+         </Toolbar>
+       </AppBar>
+       <Drawer open sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }} variant="permanent">
+         <Toolbar><Typography color="primary" variant="h6">Bookmarks</Typography></Toolbar>
+-        <List sx={{ px: 1 }}>
+-          {navigation.map(({ label, to, icon }) => <ListItemButton component={NavLink} key={to} to={to} sx={{ borderRadius: 1.5, mb: 0.5, '&.active': { bgcolor: 'primary.main', color: 'primary.contrastText', '& .MuiListItemIcon-root': { color: 'inherit' } } }}><ListItemIcon>{icon}</ListItemIcon><ListItemText primary={label} /></ListItemButton>)}
+-        </List>
++        <Box component="nav" aria-label="Desktop navigation"><NavigationList /></Box>
++      </Drawer>
++      <Drawer onClose={() => setMobileOpen(false)} open={mobileOpen} sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }} variant="temporary">
++        <Toolbar sx={{ justifyContent: 'space-between' }}>
++          <Typography color="primary" variant="h6">Bookmarks</Typography>
++          <IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)}><CloseIcon /></IconButton>
++        </Toolbar>
++        <Box component="nav" aria-label="Mobile navigation"><NavigationList onNavigate={() => setMobileOpen(false)} /></Box>
+       </Drawer>
+       <Box component="main" sx={{ flexGrow: 1, ml: { md: `${drawerWidth}px` }, p: { xs: 2, md: 4 }, pt: { xs: 10, md: 12 } }}><Outlet /></Box>
+     </Box>
+   )
+ }

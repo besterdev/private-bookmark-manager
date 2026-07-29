@@ -1,0 +1,438 @@
+# Review package: 8064b3e8de6f38b79a66451414c25b53bba93b9a..HEAD
+
+## Commits
+d3130f3 💄 style: apply Minimal-inspired bookmark theme
+
+## Files changed
+ frontend/index.html                                |  5 +-
+ frontend/src/App.tsx                               | 28 +--------
+ .../src/features/bookmarks/BookmarkCard.test.tsx   | 10 +++
+ frontend/src/features/bookmarks/BookmarkCard.tsx   |  8 +--
+ .../bookmarks/BookmarkSearchToolbar.test.tsx       | 19 ++++++
+ .../features/bookmarks/BookmarkSearchToolbar.tsx   | 37 +++++++++++
+ frontend/src/routes/AllBookmarksPage.tsx           | 23 +------
+ frontend/src/routes/BookmarksPage.tsx              | 22 +------
+ frontend/src/theme.ts                              | 71 ++++++++++++++++++++++
+ 9 files changed, 154 insertions(+), 69 deletions(-)
+
+## Diff
+diff --git a/frontend/index.html b/frontend/index.html
+index 0fca6f0..10624ca 100644
+--- a/frontend/index.html
++++ b/frontend/index.html
+@@ -1,13 +1,16 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+     <meta charset="UTF-8" />
+     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <title>frontend</title>
++    <link rel="preconnect" href="https://fonts.googleapis.com" />
++    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
++    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
++    <title>Private Bookmark Manager</title>
+   </head>
+   <body>
+     <div id="root"></div>
+     <script type="module" src="/src/main.tsx"></script>
+   </body>
+ </html>
+diff --git a/frontend/src/App.tsx b/frontend/src/App.tsx
+index 985e71d..dbe49d6 100644
+--- a/frontend/src/App.tsx
++++ b/frontend/src/App.tsx
+@@ -1,46 +1,24 @@
+-import { CssBaseline, ThemeProvider, createTheme } from "@mui/material"
++import { CssBaseline, ThemeProvider } from "@mui/material"
+ import { BrowserRouter, Navigate, Route, Routes } from "react-router"
+ 
+ import AuthGate from "./auth/AuthGate"
+ import AppShell from "./layout/AppShell"
+ import AllBookmarksPage from "./routes/AllBookmarksPage"
+ import BookmarksPage from "./routes/BookmarksPage"
+ import CallbackPage from "./routes/CallbackPage"
+ import CollectionsPage from "./routes/CollectionsPage"
+-
+-const theme = createTheme({
+-  palette: {
+-    primary: { main: "#003399", dark: "#002570" },
+-    secondary: { main: "#FF6E00", dark: "#CC5800" },
+-    text: { primary: "#3F3F3F", secondary: "#666666" },
+-    background: { default: "#F7F8FC", paper: "#FFFFFF" },
+-    divider: "#E5E7EB",
+-    error: { main: "#C62828" },
+-    success: { main: "#2E7D32" },
+-  },
+-  shape: { borderRadius: 10 },
+-  spacing: 8,
+-  typography: {
+-    fontFamily: '"Source Sans 3", sans-serif',
+-    h4: {
+-      fontFamily: "Manrope, sans-serif",
+-      fontSize: "1.75rem",
+-      fontWeight: 700,
+-      lineHeight: "2.25rem",
+-    },
+-  },
+-})
++import { appTheme } from "./theme"
+ 
+ export default function App() {
+   return (
+-    <ThemeProvider theme={theme}>
++    <ThemeProvider theme={appTheme}>
+       <CssBaseline />
+       <AuthGate>
+         <BrowserRouter>
+           <Routes>
+             <Route element={<AppShell />}>
+               <Route index element={<Navigate replace to="/collections" />} />
+               <Route path="all" element={<AllBookmarksPage />} />
+               <Route path="collections" element={<CollectionsPage />} />
+               <Route path="bookmarks" element={<BookmarksPage />} />
+             </Route>
+diff --git a/frontend/src/features/bookmarks/BookmarkCard.test.tsx b/frontend/src/features/bookmarks/BookmarkCard.test.tsx
+index 86220e0..2118d86 100644
+--- a/frontend/src/features/bookmarks/BookmarkCard.test.tsx
++++ b/frontend/src/features/bookmarks/BookmarkCard.test.tsx
+@@ -9,17 +9,27 @@ afterEach(cleanup)
+ 
+ it('opens the bookmark from its card action area in a new tab safely', () => {
+   render(<BookmarkCard bookmark={bookmark} collectionName="Design" onDelete={vi.fn()} />)
+ 
+   const link = screen.getByRole('link', { name: /mui/i })
+   expect(link).toHaveAttribute('href', 'https://mui.com')
+   expect(link).toHaveAttribute('target', '_blank')
+   expect(link).toHaveAttribute('rel', 'noreferrer')
+ })
+ 
++it('labels its branded fallback visual without taking keyboard focus from the external link', () => {
++  render(<BookmarkCard bookmark={bookmark} collectionName="Design" onDelete={vi.fn()} />)
++
++  expect(screen.getByRole('img', { name: 'Bookmark preview for MUI' })).toBeVisible()
++
++  const link = screen.getByRole('link', { name: /mui/i })
++  link.focus()
++  expect(link).toHaveFocus()
++})
++
+ it('passes its bookmark to the delete action', () => {
+   const onDelete = vi.fn()
+   render(<BookmarkCard bookmark={bookmark} collectionName="Design" onDelete={onDelete} />)
+ 
+   fireEvent.click(screen.getByRole('button', { name: 'Delete bookmark' }))
+   expect(onDelete).toHaveBeenCalledWith(bookmark)
+ })
+diff --git a/frontend/src/features/bookmarks/BookmarkCard.tsx b/frontend/src/features/bookmarks/BookmarkCard.tsx
+index fc63391..14db2b8 100644
+--- a/frontend/src/features/bookmarks/BookmarkCard.tsx
++++ b/frontend/src/features/bookmarks/BookmarkCard.tsx
+@@ -1,15 +1,15 @@
+ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
+ import { Box, Card, CardActionArea, CardActions, CardContent, Chip, IconButton, Typography } from '@mui/material'
+ 
+ import type { Bookmark } from './types'
+ 
+ export default function BookmarkCard({ bookmark, collectionName, onDelete }: { bookmark: Bookmark; collectionName: string; onDelete: (bookmark: Bookmark) => void }) {
+   return <Card variant="outlined">
+-    <CardActionArea component="a" href={bookmark.url} rel="noreferrer" target="_blank">
+-      <Box sx={{ alignItems: 'center', aspectRatio: '16 / 9', background: 'linear-gradient(135deg, #003399, #FF6E00)', color: 'common.white', display: 'flex', justifyContent: 'center' }}><BookmarkBorderIcon fontSize="large" /></Box>
+-      <CardContent><Typography noWrap sx={{ fontWeight: 700 }}>{bookmark.title}</Typography><Typography color="text.secondary" noWrap variant="body2">{new URL(bookmark.url).hostname}</Typography>{bookmark.notes && <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">{bookmark.notes}</Typography>}</CardContent>
++    <CardActionArea component="a" href={bookmark.url} rel="noreferrer" sx={{ '&.Mui-focusVisible': { outline: '3px solid #FF6E00', outlineOffset: -3 } }} target="_blank">
++      <Box aria-label={`Bookmark preview for ${bookmark.title}`} role="img" sx={{ alignItems: 'center', aspectRatio: '16 / 9', background: 'linear-gradient(135deg, #003399, #FF6E00)', color: 'common.white', display: 'flex', justifyContent: 'center' }}><BookmarkBorderIcon fontSize="large" /></Box>
++      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}><Typography noWrap sx={{ fontWeight: 700 }}>{bookmark.title}</Typography><Typography color="text.secondary" noWrap variant="body2">{new URL(bookmark.url).hostname}</Typography>{bookmark.notes && <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">{bookmark.notes}</Typography>}</CardContent>
+     </CardActionArea>
+-    <CardActions sx={{ justifyContent: 'space-between' }}><Chip label={collectionName} size="small" /><IconButton aria-label="Delete bookmark" color="error" onClick={() => onDelete(bookmark)}><DeleteOutlinedIcon /></IconButton></CardActions>
++    <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}><Chip label={collectionName} size="small" /><IconButton aria-label="Delete bookmark" color="error" onClick={() => onDelete(bookmark)}><DeleteOutlinedIcon /></IconButton></CardActions>
+   </Card>
+ }
+diff --git a/frontend/src/features/bookmarks/BookmarkSearchToolbar.test.tsx b/frontend/src/features/bookmarks/BookmarkSearchToolbar.test.tsx
+new file mode 100644
+index 0000000..53e7ea3
+--- /dev/null
++++ b/frontend/src/features/bookmarks/BookmarkSearchToolbar.test.tsx
+@@ -0,0 +1,19 @@
++import { cleanup, fireEvent, render, screen } from '@testing-library/react'
++import { afterEach, expect, it, vi } from 'vitest'
++
++import BookmarkSearchToolbar from './BookmarkSearchToolbar'
++
++afterEach(cleanup)
++
++it('passes the entered query and submits the search form', () => {
++  const onChange = vi.fn()
++  const onSubmit = vi.fn()
++
++  render(<BookmarkSearchToolbar onChange={onChange} onSubmit={onSubmit} value="" />)
++
++  fireEvent.change(screen.getByLabelText('Search bookmarks'), { target: { value: 'react' } })
++  fireEvent.submit(screen.getByRole('search'))
++
++  expect(onChange).toHaveBeenCalledWith('react')
++  expect(onSubmit).toHaveBeenCalledOnce()
++})
+diff --git a/frontend/src/features/bookmarks/BookmarkSearchToolbar.tsx b/frontend/src/features/bookmarks/BookmarkSearchToolbar.tsx
+new file mode 100644
+index 0000000..4c84447
+--- /dev/null
++++ b/frontend/src/features/bookmarks/BookmarkSearchToolbar.tsx
+@@ -0,0 +1,37 @@
++import { Search } from '@mui/icons-material'
++import { Box, Button, Stack, TextField } from '@mui/material'
++import type { ReactNode } from 'react'
++
++interface BookmarkSearchToolbarProps {
++  children?: ReactNode
++  onChange: (value: string) => void
++  onSubmit: () => void
++  value: string
++}
++
++export default function BookmarkSearchToolbar({ children, onChange, onSubmit, value }: BookmarkSearchToolbarProps) {
++  return (
++    <Box
++      aria-label="Bookmark search"
++      component="form"
++      onSubmit={(event) => {
++        event.preventDefault()
++        onSubmit()
++      }}
++      role="search"
++    >
++      <Stack spacing={1.5}>
++        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
++          <TextField
++            fullWidth
++            label="Search bookmarks"
++            onChange={(event) => onChange(event.target.value)}
++            value={value}
++          />
++          <Button startIcon={<Search />} type="submit" variant="contained">Search</Button>
++        </Stack>
++        {children}
++      </Stack>
++    </Box>
++  )
++}
+diff --git a/frontend/src/routes/AllBookmarksPage.tsx b/frontend/src/routes/AllBookmarksPage.tsx
+index 8df913f..ca7ce8d 100644
+--- a/frontend/src/routes/AllBookmarksPage.tsx
++++ b/frontend/src/routes/AllBookmarksPage.tsx
+@@ -1,19 +1,19 @@
+ import { useAuth0 } from '@auth0/auth0-react'
+-import { Search } from '@mui/icons-material'
+-import { Box, Button, Stack, TextField, Typography } from '@mui/material'
++import { Box, Stack, Typography } from '@mui/material'
+ import { useCallback, useEffect, useMemo, useState } from 'react'
+ 
+ import EmptyState from '../components/states/EmptyState'
+ import ErrorState from '../components/states/ErrorState'
+ import LoadingState from '../components/states/LoadingState'
+ import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
++import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
+ import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
+ import { createApiClient } from '../lib/api-client'
+ 
+ export default function AllBookmarksPage() {
+   const { getAccessTokenSilently } = useAuth0()
+   const api = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+   const [items, setItems] = useState<Bookmark[]>([])
+   const [collections, setCollections] = useState<CollectionOption[]>([])
+   const [search, setSearch] = useState('')
+   const [submittedSearch, setSubmittedSearch] = useState('')
+@@ -60,38 +60,21 @@ export default function AllBookmarksPage() {
+ 
+   return (
+     <Stack spacing={3}>
+       <Box>
+         <Typography component="h2" variant="h4">All bookmarks</Typography>
+         <Typography color="text.secondary">Browse every saved link by collection.</Typography>
+       </Box>
+ 
+       {error && <ErrorState message={error} onRetry={() => void load()} />}
+ 
+-      <Box
+-        component="form"
+-        onSubmit={(event) => {
+-          event.preventDefault()
+-          setSubmittedSearch(search)
+-        }}
+-        role="search"
+-      >
+-        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
+-          <TextField
+-            fullWidth
+-            label="Search bookmarks"
+-            onChange={(event) => setSearch(event.target.value)}
+-            value={search}
+-          />
+-          <Button startIcon={<Search />} type="submit" variant="contained">Search</Button>
+-        </Stack>
+-      </Box>
++      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search} />
+ 
+       {items.length === 0 ? (
+         <EmptyState
+           description={submittedSearch.trim() ? 'No bookmarks match your search.' : 'Save a link to start your bookmark library.'}
+           title={submittedSearch.trim() ? 'No matching bookmarks' : 'No bookmarks yet'}
+         />
+       ) : (
+         <Stack spacing={4}>
+           {groups.map(({ collection, items: groupItems }) => (
+             <Stack component="section" key={collection.id} spacing={1.5}>
+diff --git a/frontend/src/routes/BookmarksPage.tsx b/frontend/src/routes/BookmarksPage.tsx
+index 6f1d075..929aee9 100644
+--- a/frontend/src/routes/BookmarksPage.tsx
++++ b/frontend/src/routes/BookmarksPage.tsx
+@@ -10,20 +10,21 @@ import {
+   MenuItem,
+   Stack,
+   TextField,
+   Typography,
+ } from '@mui/material'
+ import { useEffect, useMemo, useState } from 'react'
+ import ErrorState from '../components/states/ErrorState'
+ import LoadingState from '../components/states/LoadingState'
+ import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
+ import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
++import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
+ import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
+ import { createApiClient } from '../lib/api-client'
+ 
+ export default function BookmarksPage() {
+   const { getAccessTokenSilently } = useAuth0()
+   const api = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+   const [items, setItems] = useState<Bookmark[]>([])
+   const [collections, setCollections] = useState<CollectionOption[]>([])
+   const [filter, setFilter] = useState('all')
+   const [search, setSearch] = useState('')
+@@ -105,48 +106,31 @@ export default function BookmarksPage() {
+           </Typography>
+           <Typography color="text.secondary">Save links for later.</Typography>
+         </Box>
+         <Button onClick={() => setCreateOpen(true)} startIcon={<Add />} variant="contained">
+           Create bookmark
+         </Button>
+       </Stack>
+ 
+       {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
+ 
+-      <Stack
+-        component="form"
+-        onSubmit={(event) => {
+-          event.preventDefault()
+-          setSubmittedSearch(search)
+-        }}
+-        role="search"
+-        spacing={1.5}
+-      >
+-        <Stack direction={{ sm: 'row', xs: 'column' }} spacing={1.5}>
+-          <TextField
+-            fullWidth
+-            label="Search bookmarks"
+-            onChange={(event) => setSearch(event.target.value)}
+-            value={search}
+-          />
+-          <Button type="submit" variant="contained">Search</Button>
+-        </Stack>
++      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search}>
+         <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
+           <MenuItem value="all">All bookmarks</MenuItem>
+           <MenuItem value="none">Uncategorized</MenuItem>
+           {collections.map((collection) => (
+             <MenuItem key={collection.id} value={collection.id}>
+               {collection.name}
+             </MenuItem>
+           ))}
+         </TextField>
+-      </Stack>
++      </BookmarkSearchToolbar>
+ 
+       <BookmarkCardGrid
+         collectionNameById={collectionNameById}
+         items={items}
+         onDelete={setBookmarkToDelete}
+       />
+ 
+       <BookmarkDialog
+         collections={collections}
+         onClose={() => setCreateOpen(false)}
+diff --git a/frontend/src/theme.ts b/frontend/src/theme.ts
+new file mode 100644
+index 0000000..c0e7327
+--- /dev/null
++++ b/frontend/src/theme.ts
+@@ -0,0 +1,71 @@
++import { createTheme, type Shadows, type Theme } from '@mui/material'
++
++const shadows: Shadows = Array.from({ length: 25 }, (_, index) => (
++  index === 0 ? 'none' : '0 4px 12px rgba(31, 41, 55, 0.08)'
++)) as Shadows
++
++export const appTheme: Theme = createTheme({
++  palette: {
++    background: { default: '#F7F8FC', paper: '#FFFFFF' },
++    divider: '#E5E7EB',
++    error: { main: '#C62828' },
++    primary: { dark: '#002570', main: '#003399' },
++    secondary: { dark: '#CC5800', main: '#FF6E00' },
++    success: { main: '#2E7D32' },
++    text: { primary: '#3F3F3F', secondary: '#666666' },
++  },
++  shape: { borderRadius: 12 },
++  shadows,
++  spacing: 8,
++  typography: {
++    fontFamily: '"Public Sans", sans-serif',
++    h4: { fontSize: '1.75rem', fontWeight: 700, lineHeight: '2.25rem' },
++    h5: { fontWeight: 700 },
++    h6: { fontWeight: 700 },
++  },
++  components: {
++    MuiButton: {
++      styleOverrides: {
++        root: {
++          borderRadius: 8,
++          boxShadow: 'none',
++          fontWeight: 700,
++          textTransform: 'none',
++          '&:focus-visible': { outline: '3px solid #FF6E00', outlineOffset: 2 },
++          '&:hover': { boxShadow: 'none' },
++        },
++      },
++    },
++    MuiCard: {
++      styleOverrides: {
++        root: {
++          border: '1px solid #E5E7EB',
++          boxShadow: '0 4px 12px rgba(31, 41, 55, 0.08)',
++          transition: 'box-shadow 160ms ease, transform 160ms ease',
++          '&:hover': { boxShadow: '0 8px 20px rgba(31, 41, 55, 0.12)', transform: 'translateY(-2px)' },
++        },
++      },
++    },
++    MuiChip: {
++      styleOverrides: {
++        root: { backgroundColor: '#EEF2FF', borderRadius: 8, color: '#003399', fontWeight: 600 },
++      },
++    },
++    MuiDrawer: {
++      styleOverrides: {
++        paper: { borderRight: '1px solid #E5E7EB', boxShadow: '0 8px 20px rgba(31, 41, 55, 0.08)' },
++      },
++    },
++    MuiTextField: {
++      styleOverrides: {
++        root: {
++          '& .MuiOutlinedInput-root': {
++            borderRadius: 8,
++            transition: 'box-shadow 160ms ease',
++            '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(255, 110, 0, 0.2)' },
++          },
++        },
++      },
++    },
++  },
++})

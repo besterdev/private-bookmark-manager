@@ -1,0 +1,255 @@
+# Review package: 99e05fe50c440838d33e662849ed439f78fa6fba..HEAD
+
+## Commits
+e0aece7 📝 docs: add reusable engineering playbooks
+
+## Files changed
+ .agent/README.md               | 46 +++++++++++++++++++++++++++++++++++++++
+ .agent/backend-api-security.md | 49 ++++++++++++++++++++++++++++++++++++++++++
+ .agent/frontend-ui-tests.md    | 48 +++++++++++++++++++++++++++++++++++++++++
+ .agent/quality-review.md       | 47 ++++++++++++++++++++++++++++++++++++++++
+ TASKS.md                       |  2 +-
+ 5 files changed, 191 insertions(+), 1 deletion(-)
+
+## Diff
+diff --git a/.agent/README.md b/.agent/README.md
+new file mode 100644
+index 0000000..b482afc
+--- /dev/null
++++ b/.agent/README.md
+@@ -0,0 +1,46 @@
++# Reusable Agent Playbooks
++
++## Purpose
++
++Route each change to one focused repository-local playbook so implementation and review follow the project's security, UI, and verification rules.
++
++## Use when
++
++- Use [Backend API and security](backend-api-security.md) for NestJS, Prisma, Auth0, endpoint, DTO, migration, or backend-test work.
++- Use [Frontend UI and tests](frontend-ui-tests.md) for React, MUI, routes, API-consumer, accessibility, responsive UI, or Vitest work.
++- Use [Quality review](quality-review.md) for a read-only pre-merge assessment and verification report.
++- Use the frontend playbook and then the quality-review playbook when a frontend change affects visible UI, navigation, interactions, accessibility, or shared states.
++
++## Read first
++
++Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`. Also read the relevant approved design specification and existing tests before changing code.
++
++## Guardrails
++
++- Use Bun for dependency management and commands; keep TypeScript strict.
++- Never expose secrets, access tokens, database credentials, or connection strings.
++- Keep frontend and backend boundaries explicit: the frontend calls documented HTTP endpoints only and never accesses Prisma or the database.
++- Work in a feature worktree with focused Gitmoji commits; preserve unrelated changes and obtain approval before merging.
++
++## Workflow
++
++1. Select one primary playbook based on the requested change.
++2. Follow its scoped workflow and add relevant tests and documentation updates.
++3. Escalate ambiguous product or security decisions to `DECISIONS.md` before implementation.
++4. Use the review playbook before merge when the change has implementation impact.
++
++## Commands
++
++Run the narrowest relevant command first, then the applicable workspace checks:
++
++```bash
++bun run lint
++bun run typecheck
++bun run test
++bun run test:e2e
++bun run build
++```
++
++## Definition of done
++
++The selected playbook's checks pass or are reported exactly, documentation matches the behavior, privacy is preserved, and no secrets are exposed.
+diff --git a/.agent/backend-api-security.md b/.agent/backend-api-security.md
+new file mode 100644
+index 0000000..2139dc6
+--- /dev/null
++++ b/.agent/backend-api-security.md
+@@ -0,0 +1,49 @@
++# Backend API and Security Playbook
++
++## Purpose
++
++Safely change NestJS APIs, Auth0 authentication, Prisma data access, and backend tests while preserving strict per-user privacy.
++
++## Use when
++
++Use for controllers, services, DTOs, guards, Auth0 validation, Prisma schema or migrations, API contracts, and Jest or Supertest coverage.
++
++## Read first
++
++Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then inspect the affected implementation and tests.
++
++## Guardrails
++
++- Use Bun and strict TypeScript; never expose secrets, tokens, or database credentials.
++- Require a validated Auth0 **access token**, not an ID token. Verify issuer, audience, RS256 signature through JWKS, expiry, algorithm, and a non-empty `sub`.
++- Derive the authenticated owner only from the validated Auth0 `sub`; never accept `ownerId` from request input.
++- Include owner scope in every Prisma read and mutation. Foreign or missing resources must return the same `404` behavior so existence cannot be inferred.
++- Validate create, replace, patch, and filter input with DTOs and retain the documented error shape.
++- Keep collection deletion behavior: delete the collection, clear `Bookmark.collectionId`, and preserve bookmarks.
++- Keep database access on the backend and document every public HTTP contract in `API_DESIGN.md`.
++
++## Workflow
++
++1. Define the requested behavior, ownership rule, validation rule, and failure response.
++2. Update `API_DESIGN.md` and `DECISIONS.md` when a contract or decision changes.
++3. Implement authenticated controller and service behavior with owner-scoped Prisma queries.
++4. Add unit or integration coverage for valid input, invalid input, and two-user isolation.
++5. Confirm User A cannot list, read, create against, update, delete, filter, or infer User B's collections or bookmarks.
++6. Run focused backend checks, then applicable workspace checks, and report exact outcomes.
++
++## Commands
++
++```bash
++bun --cwd backend test
++bun --cwd backend run lint
++bun --cwd backend run typecheck
++bun run test
++bun run test:e2e
++bun run build
++```
++
++Use the narrowest affected test file or suite before the broader commands.
++
++## Definition of done
++
++Auth0 identity is validated from `sub`, all resource access is owner-scoped, foreign access returns `404`, DTO validation and API documentation match behavior, two-user tests cover isolation, and applicable checks have exact reported results.
+diff --git a/.agent/frontend-ui-tests.md b/.agent/frontend-ui-tests.md
+new file mode 100644
+index 0000000..d07748b
+--- /dev/null
++++ b/.agent/frontend-ui-tests.md
+@@ -0,0 +1,48 @@
++# Frontend UI and Tests Playbook
++
++## Purpose
++
++Build and verify accessible React and MUI experiences that consume only the documented API and remain coherent with the approved Minimal-inspired design system.
++
++## Use when
++
++Use for React routes, feature modules, MUI components, authenticated API consumers, forms, responsive navigation, shared states, and Vitest coverage.
++
++## Read first
++
++Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then the approved frontend design specification and affected tests.
++
++## Guardrails
++
++- Use Bun and strict TypeScript; never expose secrets or log Auth0 access tokens in the browser.
++- Keep routes thin and feature logic in `frontend/src/features/<feature>`; call documented HTTP endpoints only. Never access Prisma or the database from the frontend.
++- Preserve the approved brand tokens: Smalt blue `#003399`, Blaze orange `#FF6E00`, Mine Shaft `#3F3F3F`, light surfaces, subtle borders, restrained shadows, and generous spacing.
++- Load and apply Public Sans through the shared MUI theme. Use existing Minimal-inspired MUI patterns and shared component overrides rather than page-specific visual drift.
++- Preserve desktop permanent navigation and the labelled temporary mobile drawer below `md`; mobile route selection closes the drawer and the current route stays identifiable.
++- Give controls accessible labels, visible keyboard focus, and real behavior. A displayed action must perform its intended behavior or not render; never ship a no-op control.
++- Handle loading, empty, success, validation, and safe error states with the shared state components. Treat API errors as untrusted and avoid displaying sensitive server details.
++
++## Workflow
++
++1. Confirm the API contract and approved design rules before implementation.
++2. Keep query and API-request state owned by the relevant route; extract only presentational shared UI where it has a current use.
++3. Implement real interactions, including confirmation and safe failure behavior for destructive actions.
++4. Add or update Vitest coverage for accessible controls, navigation, submitted actions, and success/failure states.
++5. Exercise keyboard flow for menus, drawers, dialogs, and actionable controls.
++6. Run focused frontend tests, then lint, typecheck, and build; use the quality-review playbook before merge for UI-impacting changes.
++
++## Commands
++
++```bash
++bun --cwd frontend test
++bun --cwd frontend lint
++bun --cwd frontend typecheck
++bun --cwd frontend build
++bun run test:e2e
++```
++
++Use the narrowest affected Vitest file before the broader commands.
++
++## Definition of done
++
++The UI uses approved tokens and Public Sans, responsive navigation works at desktop and mobile widths, every displayed action is real and accessible, shared states are covered, API boundaries are preserved, and applicable checks have exact reported results.
+diff --git a/.agent/quality-review.md b/.agent/quality-review.md
+new file mode 100644
+index 0000000..89b1b64
+--- /dev/null
++++ b/.agent/quality-review.md
+@@ -0,0 +1,47 @@
++# Quality Review Playbook
++
++## Purpose
++
++Provide a focused, evidence-based pre-merge review of privacy, API/UI behavior, documentation, and verification outcomes.
++
++## Use when
++
++Use after an implementation is ready for review, before merge, or when a contributor requests a read-only assessment of a diff.
++
++## Read first
++
++Read `AGENTS.md`, `API_DESIGN.md`, `DECISIONS.md`, and `AI_WORKFLOW.md`, then the relevant approved design specification, tests, and diff against `main`.
++
++## Guardrails
++
++- Remain read-only until a finding is approved for repair; do not modify source, tests, configuration, or documentation during review.
++- Use Bun and retain strict TypeScript expectations. Never expose secrets, access tokens, or database credentials in review notes.
++- Prioritise actionable privacy and security findings before lower-risk UI or maintainability observations.
++- Report exact command outcomes as passed, failed, or skipped; do not describe an unrun command as verified.
++- Preserve feature-worktree, focused-Gitmoji-commit, and explicit-approval-before-merge workflow.
++
++## Workflow
++
++1. Inspect the diff against `main`, the affected contract, decisions, and tests.
++2. Check privacy: validated Auth0 identity, owner-scoped access, `404` privacy behavior, DTO validation, and two-user coverage where backend behavior changed.
++3. Check frontend behavior: mobile route access and drawer close/dismiss flow, Public Sans availability, approved tokens, visible focus, keyboard navigation, shared loading/empty/error states, and inactive or no-op controls.
++4. Check API and documentation alignment, including collection deletion behavior and exact endpoint/error claims.
++5. Run the narrowest relevant test first, then lint, typecheck, relevant unit or E2E suites, and build.
++6. Return findings ordered by severity with file and line evidence, followed by exact passed, failed, and skipped command outcomes.
++
++## Commands
++
++```bash
++git diff main...HEAD --check
++bun run lint
++bun run typecheck
++bun run test
++bun run test:e2e
++bun run build
++```
++
++Run only relevant commands after the narrowest affected test, and mark unavailable or inapplicable commands as skipped with a reason.
++
++## Definition of done
++
++The review remains read-only, identifies only actionable findings with evidence, covers privacy and mobile/accessibility risks, checks documentation alignment, and records every verification command outcome exactly.
+diff --git a/TASKS.md b/TASKS.md
+index 5950cad..a02b3f8 100644
+--- a/TASKS.md
++++ b/TASKS.md
+@@ -18,21 +18,21 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
+ - [x] `docs/submission-evidence`
+ 
+ ## Project setup
+ 
+ - [x] Create `AGENTS.md` with project rules, target structure, commands, and workflow
+ - [x] Initialize root Bun workspace (defer `bun install` and `bun.lock` until frontend and backend exist)
+ - [x] Create NestJS backend in `backend/`
+ - [x] Create Vite React frontend in `frontend/`
+ - [x] Add root scripts for dev, lint, typecheck, test, E2E test, and build
+ - [x] Create `.env.example` files without secrets
+-- [ ] Add `.agent/` reusable agent capability
++- [x] Add `.agent/` reusable agent capability
+ 
+ ## API specification and decisions
+ 
+ - [x] Inspect Auth0 discovery document and JWKS
+ - [x] Decide which Bearer token the API accepts and document the security rationale
+ - [x] Create `API_DESIGN.md`
+ - [x] Define `/me` API contract
+ - [x] Define Collections CRUD API contract
+ - [x] Define Bookmarks CRUD and filtering API contract
+ - [x] Define `GET /collections/:id/bookmarks` contract
