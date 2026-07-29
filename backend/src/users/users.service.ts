@@ -11,7 +11,11 @@ export class UsersService {
     return this.prisma.user.upsert({
       where: { id: claims.sub },
       update: { email: claims.email ?? null, name: claims.name ?? null },
-      create: { id: claims.sub, email: claims.email ?? null, name: claims.name ?? null },
+      create: {
+        id: claims.sub,
+        email: claims.email ?? null,
+        name: claims.name ?? null,
+      },
     });
   }
 }

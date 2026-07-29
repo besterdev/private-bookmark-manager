@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -35,9 +39,13 @@ export class BookmarksService {
   }
 
   async findAll(ownerId: string, query: ListBookmarksQueryDto) {
-    if (query.collectionId) await this.findOwnedCollection(query.collectionId, ownerId);
+    if (query.collectionId)
+      await this.findOwnedCollection(query.collectionId, ownerId);
     return this.prisma.bookmark.findMany({
-      where: { ownerId, ...(query.collectionId ? { collectionId: query.collectionId } : {}) },
+      where: {
+        ownerId,
+        ...(query.collectionId ? { collectionId: query.collectionId } : {}),
+      },
       select: bookmarkSelect,
       orderBy: { createdAt: 'desc' },
     });
@@ -63,7 +71,8 @@ export class BookmarksService {
   }
 
   async update(id: string, ownerId: string, dto: UpdateBookmarkDto) {
-    if (Object.keys(dto).length === 0) throw new BadRequestException('At least one property is required');
+    if (Object.keys(dto).length === 0)
+      throw new BadRequestException('At least one property is required');
     await this.findOwnedBookmark(id, ownerId);
     await this.ensureOwnedCollection(dto.collectionId, ownerId);
 
@@ -73,7 +82,11 @@ export class BookmarksService {
     if (dto.notes !== undefined) data.notes = dto.notes;
     if (dto.collectionId !== undefined) data.collectionId = dto.collectionId;
 
-    return this.prisma.bookmark.update({ where: { id }, data, select: bookmarkSelect });
+    return this.prisma.bookmark.update({
+      where: { id },
+      data,
+      select: bookmarkSelect,
+    });
   }
 
   async remove(id: string, ownerId: string): Promise<void> {
@@ -90,7 +103,10 @@ export class BookmarksService {
     });
   }
 
-  private async ensureOwnedCollection(collectionId: string | null | undefined, ownerId: string): Promise<void> {
+  private async ensureOwnedCollection(
+    collectionId: string | null | undefined,
+    ownerId: string,
+  ): Promise<void> {
     if (collectionId) await this.findOwnedCollection(collectionId, ownerId);
   }
 
@@ -104,7 +120,10 @@ export class BookmarksService {
   }
 
   private async findOwnedCollection(id: string, ownerId: string) {
-    const collection = await this.prisma.collection.findFirst({ where: { id, ownerId }, select: { id: true } });
+    const collection = await this.prisma.collection.findFirst({
+      where: { id, ownerId },
+      select: { id: true },
+    });
     if (!collection) throw new NotFoundException('Collection not found');
     return collection;
   }

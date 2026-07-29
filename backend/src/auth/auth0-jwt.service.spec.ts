@@ -29,9 +29,12 @@ describe('Auth0JwtService', () => {
       response.setHeader('Content-Type', 'application/json');
       response.end(JSON.stringify({ keys: [publicJwk] }));
     });
-    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    await new Promise<void>((resolve) =>
+      server.listen(0, '127.0.0.1', resolve),
+    );
     const address = server.address();
-    if (!address || typeof address === 'string') throw new Error('JWKS server did not start');
+    if (!address || typeof address === 'string')
+      throw new Error('JWKS server did not start');
     issuer = `http://127.0.0.1:${address.port}/`;
   });
 
@@ -41,7 +44,9 @@ describe('Auth0JwtService', () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
     process.env.AUTH0_ISSUER_URL = previousIssuer;
     process.env.AUTH0_AUDIENCE = previousAudience;
   });
@@ -53,7 +58,9 @@ describe('Auth0JwtService', () => {
       privateKey,
     });
 
-    await expect(new Auth0JwtService().verifyAccessToken(token)).resolves.toEqual({
+    await expect(
+      new Auth0JwtService().verifyAccessToken(token),
+    ).resolves.toEqual({
       sub: 'github|123',
       email: 'mac@example.com',
       name: 'Mac',
@@ -67,11 +74,21 @@ describe('Auth0JwtService', () => {
       privateKey,
     });
 
-    await expect(new Auth0JwtService().verifyAccessToken(token)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(
+      new Auth0JwtService().verifyAccessToken(token),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });
 
-async function signedToken({ audience, issuer, privateKey }: { audience: string; issuer: string; privateKey: CryptoKey }): Promise<string> {
+async function signedToken({
+  audience,
+  issuer,
+  privateKey,
+}: {
+  audience: string;
+  issuer: string;
+  privateKey: CryptoKey;
+}): Promise<string> {
   const jose = await import('jose');
   return new jose.SignJWT({ email: 'mac@example.com', name: 'Mac' })
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
