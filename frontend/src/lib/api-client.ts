@@ -16,6 +16,10 @@ export function createApiClient(
   getAccessTokenSilently: GetAccessToken,
   baseUrl = import.meta.env.VITE_API_BASE_URL,
 ) {
+  if (typeof baseUrl !== 'string' || baseUrl.trim() === '') {
+    throw new Error('API base URL is not configured')
+  }
+
   const http = axios.create({ allowAbsoluteUrls: false, baseURL: baseUrl })
 
   http.interceptors.request.use(async (config) => {
