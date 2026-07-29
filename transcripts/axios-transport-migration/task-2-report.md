@@ -101,9 +101,10 @@ The working tree was clean after verification.
 a configured `baseURL`. With an empty or missing `VITE_API_BASE_URL`, the
 client could still acquire a token and dispatch an absolute request.
 
-`createApiClient` now throws the safe error
-`API base URL is not configured` before creating the Axios instance. The error
-contains no configuration value or token.
+The client now rejects a request with the safe error
+`API base URL is not configured` from its request interceptor before acquiring
+a token or dispatching to the adapter. Construction remains non-throwing, and
+the error contains no configuration value or token.
 
 Commit: `d4e916b` — `🔒 fix: reject requests without API base URL`
 
@@ -127,6 +128,42 @@ contains `final-review-report.md` with the final findings and out-of-scope
 debt. No dependency trees or secrets were copied.
 
 ### Final frontend verification
+
+| Check | Result |
+| --- | --- |
+| Focused API-client tests | Passed: 2 files, 5 tests. |
+| Full frontend tests | Passed: 19 files, 47 tests. |
+| Frontend lint | Exit 0 with the same three pre-existing React hook dependency warnings. |
+| Frontend typecheck | Passed. |
+| Frontend build | Passed with the existing 751.98 kB chunk-size warning. |
+| `git diff --check` | Passed. |
+
+## Recovery round
+
+### Important — fixed: synchronous construction failure
+
+The initial empty-base guard in `d4e916b` threw during `createApiClient`
+construction. That changed the established consumer contract and could bypass
+the asynchronous error handling around client methods.
+
+The guard now runs inside the request interceptor. `createApiClient` constructs
+normally, while every request with an empty or missing API base URL rejects
+asynchronously with `API base URL is not configured` before
+`getAccessTokenSilently` or the Axios adapter can run.
+
+Commit: `a25d81b` — `🔒 fix: defer API base URL validation to requests`
+
+TDD evidence:
+
+1. RED:
+   `PATH=/Users/thawatchai/.nvm/versions/node/v22.19.0/bin:$PATH bun run --cwd frontend test -- src/lib/api-client.security.test.ts`
+   failed synchronously at client construction.
+2. GREEN:
+   `PATH=/Users/thawatchai/.nvm/versions/node/v22.19.0/bin:$PATH bun run --cwd frontend test -- src/lib/api-client.security.test.ts src/lib/api-client.test.ts`
+   passed 2 files and 5 tests. The test constructs the client first, then
+   observes asynchronous request rejection and zero token/adapter calls.
+
+Recovery verification on Node.js 22.19.0:
 
 | Check | Result |
 | --- | --- |

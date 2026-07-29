@@ -13,16 +13,19 @@ keeps Bearer tokens on the configured API origin.
 ### High — token dispatch without a configured API origin
 
 An empty or missing API base URL previously allowed an absolute request path
-to proceed to token acquisition and dispatch. `createApiClient` now fails
-closed with `API base URL is not configured` before Axios instance creation,
-token acquisition, or adapter dispatch. The error exposes neither the
-configuration value nor a token.
+to proceed to token acquisition and dispatch. `createApiClient` still
+constructs normally, but each request now fails closed asynchronously with
+`API base URL is not configured` before token acquisition or adapter dispatch.
+The error exposes neither the configuration value nor a token.
 
 The real-adapter regression coverage also retains the earlier
 `allowAbsoluteUrls: false` protection from commit `18b6add`, proving an
 absolute-looking path cannot override a valid configured API origin.
 
 Fail-closed fix: `d4e916b` — `🔒 fix: reject requests without API base URL`
+
+Recovery fix: `a25d81b` —
+`🔒 fix: defer API base URL validation to requests`
 
 ### Medium — ignored review evidence
 
@@ -40,6 +43,10 @@ All final-wave commands used Node.js 22.19.0:
 - Frontend typecheck: passed.
 - Frontend production build: passed with the existing chunk-size warning.
 - `git diff --check`: passed.
+
+The recovery regression test constructs the client before calling `get`,
+observes asynchronous rejection, and verifies that neither the token getter nor
+the real Axios adapter is called.
 
 ## Pre-existing out-of-scope debt
 
