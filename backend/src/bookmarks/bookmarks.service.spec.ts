@@ -35,17 +35,25 @@ describe('BookmarksService', () => {
   it('creates an uncategorized bookmark for the authenticated owner', async () => {
     prisma.bookmark.create.mockResolvedValue(bookmark);
 
-    await expect(service.create(ownerId, { ...bookmark, collectionId: null })).resolves.toEqual(bookmark);
-    expect(prisma.bookmark.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ ownerId, collectionId: null }) }),
-    );
+    await expect(
+      service.create(ownerId, { ...bookmark, collectionId: null }),
+    ).resolves.toEqual(bookmark);
+    const createMock = prisma.bookmark.create as jest.Mock<unknown, [unknown]>;
+    const createArguments = createMock.mock.calls[0]?.[0];
+    expect(createArguments).toMatchObject({
+      data: { ownerId, collectionId: null },
+    });
   });
 
   it('rejects assignment to a collection outside the authenticated owner', async () => {
     prisma.collection.findFirst.mockResolvedValue(null);
 
     await expect(
-      service.create(ownerId, { url: bookmark.url, title: bookmark.title, collectionId: 'foreign-collection' }),
+      service.create(ownerId, {
+        url: bookmark.url,
+        title: bookmark.title,
+        collectionId: 'foreign-collection',
+      }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
@@ -53,16 +61,22 @@ describe('BookmarksService', () => {
     prisma.collection.findFirst.mockResolvedValue({ id: 'collection-1' });
     prisma.bookmark.findMany.mockResolvedValue([bookmark]);
 
-    await expect(service.findAll(ownerId, { collectionId: 'collection-1' })).resolves.toEqual([bookmark]);
+    await expect(
+      service.findAll(ownerId, { collectionId: 'collection-1' }),
+    ).resolves.toEqual([bookmark]);
     expect(prisma.bookmark.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { ownerId, collectionId: 'collection-1' } }),
+      expect.objectContaining({
+        where: { ownerId, collectionId: 'collection-1' },
+      }),
     );
   });
 
   it('returns not found for another user bookmark', async () => {
     prisma.bookmark.findFirst.mockResolvedValue(null);
 
-    await expect(service.findOne(bookmark.id, ownerId)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne(bookmark.id, ownerId)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('updates and deletes only an owned bookmark', async () => {
@@ -70,7 +84,9 @@ describe('BookmarksService', () => {
     prisma.bookmark.update.mockResolvedValue({ ...bookmark, title: 'Updated' });
     prisma.bookmark.delete.mockResolvedValue(bookmark);
 
-    await expect(service.update(bookmark.id, ownerId, { title: 'Updated' })).resolves.toMatchObject({
+    await expect(
+      service.update(bookmark.id, ownerId, { title: 'Updated' }),
+    ).resolves.toMatchObject({
       title: 'Updated',
     });
     await expect(service.remove(bookmark.id, ownerId)).resolves.toBeUndefined();

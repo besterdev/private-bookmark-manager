@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import type { VerifiedAuth0Claims } from '../auth/authenticated-request.interface';
@@ -14,12 +27,18 @@ export class BookmarksController {
   constructor(private readonly bookmarksService: BookmarksService) {}
 
   @Post()
-  create(@CurrentUser() user: VerifiedAuth0Claims, @Body() dto: CreateBookmarkDto) {
+  create(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Body() dto: CreateBookmarkDto,
+  ) {
     return this.bookmarksService.create(user.sub, dto);
   }
 
   @Get()
-  findAll(@CurrentUser() user: VerifiedAuth0Claims, @Query() query: ListBookmarksQueryDto) {
+  findAll(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Query() query: ListBookmarksQueryDto,
+  ) {
     return this.bookmarksService.findAll(user.sub, query);
   }
 
@@ -29,18 +48,29 @@ export class BookmarksController {
   }
 
   @Put(':id')
-  replace(@CurrentUser() user: VerifiedAuth0Claims, @Param('id') id: string, @Body() dto: CreateBookmarkDto) {
+  replace(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Param('id') id: string,
+    @Body() dto: CreateBookmarkDto,
+  ) {
     return this.bookmarksService.replace(id, user.sub, dto);
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: VerifiedAuth0Claims, @Param('id') id: string, @Body() dto: UpdateBookmarkDto) {
+  update(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Param('id') id: string,
+    @Body() dto: UpdateBookmarkDto,
+  ) {
     return this.bookmarksService.update(id, user.sub, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@CurrentUser() user: VerifiedAuth0Claims, @Param('id') id: string): Promise<void> {
+  async remove(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Param('id') id: string,
+  ): Promise<void> {
     await this.bookmarksService.remove(id, user.sub);
   }
 }

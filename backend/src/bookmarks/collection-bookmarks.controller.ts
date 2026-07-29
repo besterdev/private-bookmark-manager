@@ -11,7 +11,10 @@ export class CollectionBookmarksController {
   constructor(private readonly bookmarksService: BookmarksService) {}
 
   @Get(':id/bookmarks')
-  findByCollection(@CurrentUser() user: VerifiedAuth0Claims, @Param('id') id: string) {
+  findByCollection(
+    @CurrentUser() user: VerifiedAuth0Claims,
+    @Param('id') id: string,
+  ) {
     return this.bookmarksService.findByCollection(id, user.sub);
   }
 }

@@ -18,12 +18,10 @@ const userB = 'auth0|user-b';
 
 class TestAuthGuard {
   canActivate(context: ExecutionContext): boolean {
-    const request = context
-      .switchToHttp()
-      .getRequest<{
-        headers: { authorization?: string };
-        user?: { sub: string };
-      }>();
+    const request = context.switchToHttp().getRequest<{
+      headers: { authorization?: string };
+      user?: { sub: string };
+    }>();
     const token = request.headers.authorization;
 
     if (token === 'Bearer test-user-a') {
@@ -102,7 +100,7 @@ describe('Collections (e2e)', () => {
       statusCode: 400,
       error: 'Bad Request',
     });
-    expect(invalidResponse.body.message).toEqual(
+    expect(responseMessages(invalidResponse.body)).toEqual(
       expect.arrayContaining([expect.stringMatching(/should not be empty/)]),
     );
 
@@ -122,6 +120,7 @@ describe('Collections (e2e)', () => {
       .set('Authorization', 'Bearer test-user-a')
       .send({ name: 'Work' })
       .expect(201);
+    const collectionId = responseId(created.body);
 
     await request(app.getHttpServer())
       .get('/collections')
@@ -129,25 +128,25 @@ describe('Collections (e2e)', () => {
       .expect(200)
       .expect(({ body }) =>
         expect(body).toEqual([
-          expect.objectContaining({ id: created.body.id, name: 'Work' }),
+          expect.objectContaining({ id: collectionId, name: 'Work' }),
         ]),
       );
 
     await request(app.getHttpServer())
-      .get(`/collections/${created.body.id}`)
+      .get(`/collections/${collectionId}`)
       .set('Authorization', 'Bearer test-user-a')
       .expect(200)
       .expect(({ body }) => expect(body).toMatchObject({ name: 'Work' }));
 
     await request(app.getHttpServer())
-      .put(`/collections/${created.body.id}`)
+      .put(`/collections/${collectionId}`)
       .set('Authorization', 'Bearer test-user-a')
       .send({ name: 'Personal' })
       .expect(200)
       .expect(({ body }) => expect(body).toMatchObject({ name: 'Personal' }));
 
     await request(app.getHttpServer())
-      .patch(`/collections/${created.body.id}`)
+      .patch(`/collections/${collectionId}`)
       .set('Authorization', 'Bearer test-user-a')
       .send({ name: 'Reading' })
       .expect(200)
@@ -207,3 +206,29 @@ describe('Collections (e2e)', () => {
     });
   });
 });
+
+function responseId(body: unknown): string {
+  if (
+    typeof body !== 'object' ||
+    body === null ||
+    !('id' in body) ||
+    typeof body.id !== 'string'
+  ) {
+    throw new Error('Response does not include a string id');
+  }
+  return body.id;
+}
+
+function responseMessages(body: unknown): string[] {
+  if (
+    typeof body !== 'object' ||
+    body === null ||
+    !('message' in body) ||
+    !Array.isArray(body.message)
+  ) {
+    throw new Error('Response does not include validation messages');
+  }
+  return body.message.filter(
+    (message): message is string => typeof message === 'string',
+  );
+}

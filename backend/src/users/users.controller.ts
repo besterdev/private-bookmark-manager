@@ -11,7 +11,9 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  async me(@CurrentUser() claims: VerifiedAuth0Claims): Promise<CurrentUserResponse> {
+  async me(
+    @CurrentUser() claims: VerifiedAuth0Claims,
+  ): Promise<CurrentUserResponse> {
     const user = await this.usersService.findOrCreateCurrentUser(claims);
 
     return { id: user.id, email: user.email, name: user.name };

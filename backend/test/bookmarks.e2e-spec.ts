@@ -1,4 +1,9 @@
-import { ExecutionContext, INestApplication, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import {
+  ExecutionContext,
+  INestApplication,
+  UnauthorizedException,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -13,7 +18,10 @@ const userB = 'auth0|user-b';
 
 class TestAuthGuard {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<{ headers: { authorization?: string }; user?: { sub: string } }>();
+    const request = context.switchToHttp().getRequest<{
+      headers: { authorization?: string };
+      user?: { sub: string };
+    }>();
     if (request.headers.authorization === 'Bearer test-user-a') {
       request.user = { sub: userA };
       return true;
@@ -31,14 +39,22 @@ describe('Bookmarks (e2e)', () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    })
       .overrideGuard(AuthGuard)
       .useClass(TestAuthGuard)
       .overrideProvider(Auth0JwtService)
       .useValue({ verifyAccessToken: jest.fn() })
       .compile();
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
     prisma = app.get(PrismaService);
     await app.init();
   });
@@ -67,47 +83,67 @@ describe('Bookmarks (e2e)', () => {
     const created = await request(app.getHttpServer())
       .post('/bookmarks')
       .set('Authorization', 'Bearer test-user-a')
-      .send({ url: 'https://example.com', title: '  Example  ', notes: '  read later  ' })
+      .send({
+        url: 'https://example.com',
+        title: '  Example  ',
+        notes: '  read later  ',
+      })
       .expect(201);
+    const bookmarkId = responseId(created.body);
 
-    expect(created.body).toMatchObject({ title: 'Example', notes: 'read later', collectionId: null });
+    expect(created.body).toMatchObject({
+      title: 'Example',
+      notes: 'read later',
+      collectionId: null,
+    });
     expect(created.body).not.toHaveProperty('ownerId');
 
     await request(app.getHttpServer())
       .get('/bookmarks')
       .set('Authorization', 'Bearer test-user-a')
       .expect(200)
-      .expect(({ body }) => expect(body).toEqual([expect.objectContaining({ id: created.body.id })]));
+      .expect(({ body }) =>
+        expect(body).toEqual([expect.objectContaining({ id: bookmarkId })]),
+      );
 
     await request(app.getHttpServer())
-      .get(`/bookmarks/${created.body.id}`)
+      .get(`/bookmarks/${bookmarkId}`)
       .set('Authorization', 'Bearer test-user-a')
       .expect(200);
 
     await request(app.getHttpServer())
-      .put(`/bookmarks/${created.body.id}`)
+      .put(`/bookmarks/${bookmarkId}`)
       .set('Authorization', 'Bearer test-user-a')
       .send({ url: 'https://example.org', title: 'Replaced' })
       .expect(200)
-      .expect(({ body }) => expect(body).toMatchObject({ title: 'Replaced', notes: null }));
+      .expect(({ body }) =>
+        expect(body).toMatchObject({ title: 'Replaced', notes: null }),
+      );
 
     await request(app.getHttpServer())
-      .patch(`/bookmarks/${created.body.id}`)
+      .patch(`/bookmarks/${bookmarkId}`)
       .set('Authorization', 'Bearer test-user-a')
       .send({ title: 'Patched' })
       .expect(200)
       .expect(({ body }) => expect(body).toMatchObject({ title: 'Patched' }));
 
     await request(app.getHttpServer())
-      .delete(`/bookmarks/${created.body.id}`)
+      .delete(`/bookmarks/${bookmarkId}`)
       .set('Authorization', 'Bearer test-user-a')
       .expect(204);
   });
 
   it('filters bookmarks and reads a collection bookmark list only for its owner', async () => {
-    const collection = await prisma.collection.create({ data: { name: 'Work', ownerId: userA } });
+    const collection = await prisma.collection.create({
+      data: { name: 'Work', ownerId: userA },
+    });
     await prisma.bookmark.create({
-      data: { ownerId: userA, collectionId: collection.id, url: 'https://example.com', title: 'Example' },
+      data: {
+        ownerId: userA,
+        collectionId: collection.id,
+        url: 'https://example.com',
+        title: 'Example',
+      },
     });
 
     await request(app.getHttpServer())
@@ -125,9 +161,16 @@ describe('Bookmarks (e2e)', () => {
   });
 
   it('hides foreign bookmarks and collections from another user', async () => {
-    const foreignCollection = await prisma.collection.create({ data: { name: 'Private', ownerId: userB } });
+    const foreignCollection = await prisma.collection.create({
+      data: { name: 'Private', ownerId: userB },
+    });
     const foreignBookmark = await prisma.bookmark.create({
-      data: { ownerId: userB, collectionId: foreignCollection.id, url: 'https://example.com', title: 'Private' },
+      data: {
+        ownerId: userB,
+        collectionId: foreignCollection.id,
+        url: 'https://example.com',
+        title: 'Private',
+      },
     });
 
     await request(app.getHttpServer())
@@ -138,8 +181,12 @@ describe('Bookmarks (e2e)', () => {
 
     for (const method of ['get', 'patch', 'delete'] as const) {
       const endpoint = `/bookmarks/${foreignBookmark.id}`;
-      const builder = request(app.getHttpServer())[method](endpoint).set('Authorization', 'Bearer test-user-a');
-      await (method === 'patch' ? builder.send({ title: 'Changed' }) : builder).expect(404);
+      const builder = request(app.getHttpServer())
+        [method](endpoint)
+        .set('Authorization', 'Bearer test-user-a');
+      await (
+        method === 'patch' ? builder.send({ title: 'Changed' }) : builder
+      ).expect(404);
     }
 
     await request(app.getHttpServer())
@@ -155,7 +202,23 @@ describe('Bookmarks (e2e)', () => {
     await request(app.getHttpServer())
       .post('/bookmarks')
       .set('Authorization', 'Bearer test-user-a')
-      .send({ url: 'https://example.org', title: 'Blocked', collectionId: foreignCollection.id })
+      .send({
+        url: 'https://example.org',
+        title: 'Blocked',
+        collectionId: foreignCollection.id,
+      })
       .expect(404);
   });
 });
+
+function responseId(body: unknown): string {
+  if (
+    typeof body !== 'object' ||
+    body === null ||
+    !('id' in body) ||
+    typeof body.id !== 'string'
+  ) {
+    throw new Error('Response does not include a string id');
+  }
+  return body.id;
+}
