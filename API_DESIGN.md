@@ -69,7 +69,7 @@ All bookmark endpoints require a valid Bearer access token.
 | Method | Path | Body/query | Success |
 | --- | --- | --- | --- |
 | `POST` | `/bookmarks` | `{ "url", "title", "notes?", "collectionId?" }` | `201` bookmark |
-| `GET` | `/bookmarks` | optional `?collectionId=` | `200` bookmark array |
+| `GET` | `/bookmarks` | optional `?collectionId=` and `?q=` | `200` bookmark array |
 | `GET` | `/bookmarks/:id` | none | `200` bookmark |
 | `PUT` | `/bookmarks/:id` | `{ "url", "title", "notes?", "collectionId?" }` | `200` bookmark |
 | `PATCH` | `/bookmarks/:id` | one or more mutable fields | `200` bookmark |
@@ -78,4 +78,4 @@ All bookmark endpoints require a valid Bearer access token.
 
 A bookmark response contains `id`, `url`, `title`, `notes`, `collectionId`, `createdAt`, and `updatedAt`; it never returns `ownerId`. `url` must be valid, `title` is a trimmed non-empty string of at most 255 characters, `notes` is optional (or `null`) and at most 10,000 characters, and `collectionId` is a CUID or `null`.
 
-Bookmark lists always filter by the authenticated user. A supplied `collectionId` and the nested collection route first verify that the collection belongs to the authenticated user; missing or foreign collections and bookmarks return `404`. Create and update reject assignment to another user's collection with `404`, preventing both cross-user writes and existence disclosure.
+Bookmark lists always filter by the authenticated user. `q` is an optional trimmed string of 1–120 characters that performs a partial match on `title` or `notes`. When supplied with `collectionId`, both filters apply. A supplied `collectionId` and the nested collection route first verify that the collection belongs to the authenticated user; missing or foreign collections and bookmarks return `404`. Create and update reject assignment to another user's collection with `404`, preventing both cross-user writes and existence disclosure.

@@ -160,6 +160,76 @@ describe('Bookmarks (e2e)', () => {
       .expect(({ body }) => expect(body).toHaveLength(1));
   });
 
+  it('searches an owner\'s bookmark titles and notes with an optional collection filter', async () => {
+    const collection = await prisma.collection.create({
+      data: { name: 'Work', ownerId: userA },
+    });
+    const titleMatch = await prisma.bookmark.create({
+      data: {
+        ownerId: userA,
+        collectionId: collection.id,
+        url: 'https://react.dev',
+        title: 'React documentation',
+      },
+    });
+    const notesMatch = await prisma.bookmark.create({
+      data: {
+        ownerId: userA,
+        url: 'https://example.com',
+        title: 'Reference',
+        notes: 'Read the React guide later',
+      },
+    });
+    await prisma.bookmark.create({
+      data: {
+        ownerId: userB,
+        url: 'https://example.org',
+        title: 'React private bookmark',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .get('/bookmarks')
+      .query({ q: 'react' })
+      .set('Authorization', 'Bearer test-user-a')
+      .expect(200)
+      .expect(({ body }) =>
+        expect(body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: titleMatch.id }),
+            expect.objectContaining({ id: notesMatch.id }),
+          ]),
+        ),
+      );
+
+    await request(app.getHttpServer())
+      .get('/bookmarks')
+      .query({ q: 'react', collectionId: collection.id })
+      .set('Authorization', 'Bearer test-user-a')
+      .expect(200)
+      .expect(({ body }) =>
+        expect(body).toEqual([expect.objectContaining({ id: titleMatch.id })]),
+      );
+  });
+
+  it('validates search terms and keeps foreign collections private when searching', async () => {
+    const foreignCollection = await prisma.collection.create({
+      data: { name: 'Private', ownerId: userB },
+    });
+
+    await request(app.getHttpServer())
+      .get('/bookmarks')
+      .query({ q: 'a'.repeat(121) })
+      .set('Authorization', 'Bearer test-user-a')
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .get('/bookmarks')
+      .query({ q: 'private', collectionId: foreignCollection.id })
+      .set('Authorization', 'Bearer test-user-a')
+      .expect(404);
+  });
+
   it('hides foreign bookmarks and collections from another user', async () => {
     const foreignCollection = await prisma.collection.create({
       data: { name: 'Private', ownerId: userB },

@@ -45,6 +45,14 @@ export class BookmarksService {
       where: {
         ownerId,
         ...(query.collectionId ? { collectionId: query.collectionId } : {}),
+        ...(query.q
+          ? {
+              OR: [
+                { title: { contains: query.q } },
+                { notes: { contains: query.q } },
+              ],
+            }
+          : {}),
       },
       select: bookmarkSelect,
       orderBy: { createdAt: 'desc' },
