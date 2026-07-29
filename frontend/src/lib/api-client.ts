@@ -16,7 +16,7 @@ export function createApiClient(
   getAccessTokenSilently: GetAccessToken,
   baseUrl = import.meta.env.VITE_API_BASE_URL,
 ) {
-  const http = axios.create({ baseURL: baseUrl })
+  const http = axios.create({ allowAbsoluteUrls: false, baseURL: baseUrl })
 
   http.interceptors.request.use(async (config) => {
     const token = await getAccessTokenSilently()

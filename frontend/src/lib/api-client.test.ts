@@ -68,7 +68,10 @@ it('creates an Axios instance for the configured API and attaches the Auth0 acce
 
   await client.get<{ id: string }>('/me')
 
-  expect(axios.create).toHaveBeenCalledWith({ baseURL: 'http://localhost:3001' })
+  expect(axios.create).toHaveBeenCalledWith({
+    allowAbsoluteUrls: false,
+    baseURL: 'http://localhost:3001',
+  })
   const config = await applyRequestInterceptor({ headers: new AxiosHeaders() })
   expect(config.headers.get('Authorization')).toBe('Bearer access-token')
 })
