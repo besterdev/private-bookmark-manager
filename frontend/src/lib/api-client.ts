@@ -1,3 +1,5 @@
+import axios, { AxiosError } from 'axios'
+
 export class ApiError extends Error {
   readonly status: number
 
@@ -10,23 +12,41 @@ export class ApiError extends Error {
 
 type GetAccessToken = () => Promise<string>
 
-export function createApiClient(getAccessTokenSilently: GetAccessToken, baseUrl = import.meta.env.VITE_API_BASE_URL) {
-  async function request<T>(path: string, init: RequestInit = {}): Promise<T | undefined> {
+export function createApiClient(
+  getAccessTokenSilently: GetAccessToken,
+  baseUrl = import.meta.env.VITE_API_BASE_URL,
+) {
+  const http = axios.create({ baseURL: baseUrl })
+
+  http.interceptors.request.use(async (config) => {
     const token = await getAccessTokenSilently()
-    const response = await fetch(`${baseUrl}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...init.headers } })
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({})) as { message?: string }
-      throw new ApiError(response.status, body.message ?? `Request failed (${response.status})`)
-    }
-    if (response.status === 204) return undefined
-    return response.json() as Promise<T>
-  }
+    config.headers.set('Authorization', `Bearer ${token}`)
+    return config
+  })
+
+  http.interceptors.response.use(
+    (response) => response,
+    (cause: unknown) => {
+      if (!axios.isAxiosError(cause)) return Promise.reject(cause)
+
+      const error = cause as AxiosError<{ message?: unknown }>
+      const status = error.response?.status ?? 0
+      const message = typeof error.response?.data?.message === 'string'
+        ? error.response.data.message
+        : status === 0
+          ? 'Network request failed'
+          : `Request failed (${status})`
+
+      return Promise.reject(new ApiError(status, message))
+    },
+  )
 
   return {
-    async get<T>(path: string): Promise<T> {
-      return request<T>(path) as Promise<T>
+    get: async <T>(path: string): Promise<T> => (await http.get<T>(path)).data,
+    post: async <T>(path: string, body: unknown): Promise<T> =>
+      (await http.post<T>(path, body)).data,
+    delete: async (path: string): Promise<void> => {
+      await http.delete(path)
     },
-    async post<T>(path: string, body: unknown): Promise<T> { return request<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) as Promise<T> },
-    async delete(path: string): Promise<void> { await request(path, { method: 'DELETE' }) },
   }
 }

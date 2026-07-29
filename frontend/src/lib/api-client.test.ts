@@ -1,34 +1,104 @@
+import axios, { AxiosHeaders } from 'axios'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import { ApiError, createApiClient } from './api-client'
+const axiosState = vi.hoisted(() => ({
+  requestInterceptor: undefined as
+    | ((config: { headers: AxiosHeaders }) => Promise<{ headers: AxiosHeaders }>)
+    | undefined,
+  responseRejection: undefined as
+    | ((cause: unknown) => Promise<never>)
+    | undefined,
+  get: vi.fn(),
+  post: vi.fn(),
+  delete: vi.fn(),
+  create: vi.fn(),
+}))
 
-afterEach(() => vi.unstubAllGlobals())
+vi.mock('axios', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('axios')>()
+  axiosState.create.mockReturnValue({
+    get: axiosState.get,
+    post: axiosState.post,
+    delete: axiosState.delete,
+    interceptors: {
+      request: {
+        use: vi.fn((fulfilled) => {
+          axiosState.requestInterceptor = fulfilled
+        }),
+      },
+      response: {
+        use: vi.fn((_fulfilled, rejected) => {
+          axiosState.responseRejection = rejected
+        }),
+      },
+    },
+  })
 
-it('sends Auth0 access tokens to the configured API', async () => {
+  return {
+    ...actual,
+    default: {
+      ...actual.default,
+      create: axiosState.create,
+    },
+  }
+})
+
+import { createApiClient } from './api-client'
+
+function applyRequestInterceptor(config: { headers: AxiosHeaders }) {
+  if (!axiosState.requestInterceptor) throw new Error('Request interceptor was not installed')
+  return axiosState.requestInterceptor(config)
+}
+
+function applyResponseRejection(cause: unknown) {
+  if (!axiosState.responseRejection) throw new Error('Response interceptor was not installed')
+  return axiosState.responseRejection(cause)
+}
+
+afterEach(() => {
+  vi.clearAllMocks()
+  axiosState.requestInterceptor = undefined
+  axiosState.responseRejection = undefined
+})
+
+it('creates an Axios instance for the configured API and attaches the Auth0 access token', async () => {
   const getAccessTokenSilently = vi.fn().mockResolvedValue('access-token')
-  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 'auth0|user-a' }), { status: 200 }))
-  vi.stubGlobal('fetch', fetchMock)
-
   const client = createApiClient(getAccessTokenSilently, 'http://localhost:3001')
+  axiosState.get.mockResolvedValue({ data: { id: 'auth0|user-a' } })
 
-  await expect(client.get<{ id: string }>('/me')).resolves.toEqual({ id: 'auth0|user-a' })
-  expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/me', expect.objectContaining({ headers: { Authorization: 'Bearer access-token' } }))
+  await client.get<{ id: string }>('/me')
+
+  expect(axios.create).toHaveBeenCalledWith({ baseURL: 'http://localhost:3001' })
+  const config = await applyRequestInterceptor({ headers: new AxiosHeaders() })
+  expect(config.headers.get('Authorization')).toBe('Bearer access-token')
 })
 
-it('throws ApiError when the API responds with an error', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 })))
-
-  await expect(createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001').get('/me')).rejects.toBeInstanceOf(ApiError)
-})
-
-it('posts JSON and handles a no-content delete response', async () => {
-  const fetchMock = vi.fn()
-    .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'collection-1', name: 'Work' }), { status: 201 }))
-    .mockResolvedValueOnce(new Response(null, { status: 204 }))
-  vi.stubGlobal('fetch', fetchMock)
+it('returns typed response data for GET and POST and resolves DELETE with no content', async () => {
   const client = createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+  axiosState.get.mockResolvedValue({ data: { id: 'auth0|user-a' } })
+  axiosState.post.mockResolvedValue({ data: { id: 'collection-1', name: 'Work' } })
+  axiosState.delete.mockResolvedValue({})
 
-  await expect(client.post<{ id: string }>('/collections', { name: 'Work' })).resolves.toEqual({ id: 'collection-1', name: 'Work' })
+  await expect(client.get('/me')).resolves.toEqual({ id: 'auth0|user-a' })
+  await expect(client.post('/collections', { name: 'Work' }))
+    .resolves.toEqual({ id: 'collection-1', name: 'Work' })
   await expect(client.delete('/collections/collection-1')).resolves.toBeUndefined()
-  expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://localhost:3001/collections', expect.objectContaining({ method: 'POST', headers: { Authorization: 'Bearer access-token', 'Content-Type': 'application/json' } }))
+})
+
+it('normalizes Axios HTTP and network failures as ApiError', async () => {
+  createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
+
+  await expect(applyResponseRejection({
+    isAxiosError: true,
+    response: { status: 401, data: { message: 'Unauthorized' } },
+  })).rejects.toMatchObject({ name: 'ApiError', status: 401 })
+
+  await expect(applyResponseRejection({
+    isAxiosError: true,
+    message: 'Network Error',
+  })).rejects.toMatchObject({
+    name: 'ApiError',
+    status: 0,
+    message: 'Network request failed',
+  })
 })
