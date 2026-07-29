@@ -85,8 +85,8 @@ export default function BookmarksPage() {
       await api.delete(`/bookmarks/${bookmarkToDelete.id}`)
       setItems((current) => current.filter((item) => item.id !== bookmarkToDelete.id))
       setBookmarkToDelete(undefined)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to delete bookmark', retry: false })
+    } catch {
+      setError({ message: 'Unable to delete bookmark', retry: false })
       setBookmarkToDelete(undefined)
     }
   }

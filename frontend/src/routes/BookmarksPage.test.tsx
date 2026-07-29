@@ -65,7 +65,7 @@ it('keeps the bookmark and shows a safe error when deletion fails', async () => 
       },
     ])
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
-  api.delete.mockRejectedValueOnce(new Error('Unable to delete bookmark'))
+  api.delete.mockRejectedValueOnce(new Error('Internal SQL error: ownerId=auth0|victim'))
 
   render(<BookmarksPage />)
 
@@ -73,6 +73,7 @@ it('keeps the bookmark and shows a safe error when deletion fails', async () => 
   fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete bookmark')
+  expect(screen.queryByText('Internal SQL error: ownerId=auth0|victim')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: /MUI/i })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
 })
