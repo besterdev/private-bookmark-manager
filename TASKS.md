@@ -25,7 +25,7 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 - [x] Create Vite React frontend in `frontend/`
 - [x] Add root scripts for dev, lint, typecheck, test, E2E test, and build
 - [x] Create `.env.example` files without secrets
-- [ ] Add `.agent/` reusable agent capability
+- [x] Add `.agent/` reusable agent capability
 
 ## API specification and decisions
 
