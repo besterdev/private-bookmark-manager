@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, expect, it, vi } from 'vitest'
 import App from './App'
 
 vi.mock('@auth0/auth0-react', () => ({
@@ -16,10 +16,38 @@ vi.mock('./lib/api-client', () => ({
   createApiClient: () => ({ get: vi.fn().mockResolvedValue([]) }),
 }))
 
+afterEach(cleanup)
+
 it('renders the shell heading and primary navigation after API access is verified', async () => {
   render(<App />)
 
   expect(await screen.findByRole('heading', { name: 'Private Bookmark Manager' })).toBeVisible()
   expect(screen.getByRole('link', { name: 'Collections' })).toBeVisible()
   expect(screen.getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+})
+
+it('opens mobile navigation with all application routes and closes it with the close button', async () => {
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
+
+  fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+  const mobileNavigation = screen.getByRole('navigation', { name: 'Mobile navigation' })
+  expect(within(mobileNavigation).getByRole('link', { name: 'All bookmarks' })).toBeVisible()
+  expect(within(mobileNavigation).getByRole('link', { name: 'Collections' })).toBeVisible()
+  expect(within(mobileNavigation).getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Close navigation' }))
+
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
+})
+
+it('closes mobile navigation after choosing All bookmarks', async () => {
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
+
+  fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+  fireEvent.click(screen.getAllByRole('link', { name: 'All bookmarks' }).at(-1)!)
+
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
 })
