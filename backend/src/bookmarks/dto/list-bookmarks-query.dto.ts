@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, type TransformFnParams } from 'class-transformer';
 import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class ListBookmarksQueryDto {
@@ -7,9 +7,10 @@ export class ListBookmarksQueryDto {
   collectionId?: string;
 
   @IsOptional()
-  @Transform(({ value }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform((params: TransformFnParams): unknown => {
+    const value: unknown = params.value;
+    return typeof value === 'string' ? value.trim() : value;
+  })
   @IsString()
   @MaxLength(120)
   q?: string;
