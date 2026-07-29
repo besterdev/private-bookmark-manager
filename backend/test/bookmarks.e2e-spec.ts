@@ -160,7 +160,7 @@ describe('Bookmarks (e2e)', () => {
       .expect(({ body }) => expect(body).toHaveLength(1));
   });
 
-  it('searches an owner\'s bookmark titles and notes with an optional collection filter', async () => {
+  it("searches an owner's bookmark titles and notes with an optional collection filter", async () => {
     const collection = await prisma.collection.create({
       data: { name: 'Work', ownerId: userA },
     });
@@ -220,6 +220,12 @@ describe('Bookmarks (e2e)', () => {
     await request(app.getHttpServer())
       .get('/bookmarks')
       .query({ q: 'a'.repeat(121) })
+      .set('Authorization', 'Bearer test-user-a')
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .get('/bookmarks')
+      .query({ q: '   ' })
       .set('Authorization', 'Bearer test-user-a')
       .expect(400);
 

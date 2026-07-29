@@ -1,5 +1,11 @@
 import { Transform, type TransformFnParams } from 'class-transformer';
-import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class ListBookmarksQueryDto {
   @IsOptional()
@@ -12,6 +18,7 @@ export class ListBookmarksQueryDto {
     return typeof value === 'string' ? value.trim() : value;
   })
   @IsString()
+  @MinLength(1)
   @MaxLength(120)
   q?: string;
 }
