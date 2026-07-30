@@ -36,6 +36,7 @@ GitHub Environment `production` contains the following non-secret variables:
 - `GCP_REGION`
 - `GCP_WIF_PROVIDER`
 - `GCP_DEPLOYER_SERVICE_ACCOUNT`
+- `GCP_RUNTIME_SERVICE_ACCOUNT`
 - `GCP_CLOUD_SQL_INSTANCE` in `PROJECT:REGION:INSTANCE` form
 - `GCP_ARTIFACT_REPOSITORY`
 - `VITE_AUTH0_DOMAIN`
@@ -48,7 +49,7 @@ Secret Manager contains the backend runtime secrets:
 - `bookmark-auth0-issuer-url`
 - `bookmark-auth0-audience`
 
-The Google deployer service account requires Artifact Registry writer, Cloud Run developer, Service Account user for the Cloud Run runtime identity, Secret Manager secret accessor, and Cloud SQL client. The GitHub repository principal is authorized only to impersonate that deployer service account through the configured Workload Identity Provider.
+The Google deployer service account requires Artifact Registry writer, Cloud Run admin, and Service Account user for the Cloud Run runtime identity. The Cloud Run runtime service account requires Secret Manager secret accessor and Cloud SQL client. The GitHub repository principal is authorized only to impersonate the deployer service account through the configured Workload Identity Provider.
 
 ## Runtime behavior
 
