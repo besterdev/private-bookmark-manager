@@ -35,6 +35,7 @@ it('retries a failed collection request', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
   expect(await screen.findByText('No collections yet')).toBeVisible()
   expect(api.get).toHaveBeenCalledTimes(2)
+  expect(api.get).toHaveBeenLastCalledWith('/collections')
 })
 
 it('keeps creation open and reports a failed collection create', async () => {

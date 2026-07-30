@@ -148,7 +148,7 @@ it('keeps creation open and reports a failed bookmark create', async () => {
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
 })
 
-it('combines search with the selected collection filter', async () => {
+it('requests the submitted query with the selected collection filter', async () => {
   api.get
     .mockResolvedValueOnce([])
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])

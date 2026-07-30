@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
@@ -36,7 +36,7 @@ export default function BookmarksPage() {
     [collections],
   )
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     setError(undefined)
 
@@ -57,11 +57,11 @@ export default function BookmarksPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [api, filter, submittedSearch])
 
   useEffect(() => {
     void load()
-  }, [api, filter, submittedSearch])
+  }, [load])
 
   const create = async (value: {
     title: string

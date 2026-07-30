@@ -24,8 +24,8 @@ export default function CollectionsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const selected = collections.find((collection) => collection.id === selectedId)
-  const load = async () => { setLoading(true); setError(undefined); try { const data = await api.get<Collection[]>('/collections'); setCollections(data); setSelectedId((id) => id && data.some((item) => item.id === id) ? id : data[0]?.id) } catch { setError({ message: 'Unable to load collections', retry: true }) } finally { setLoading(false) } }
-  useEffect(() => { void load() }, [api])
+  const load = useCallback(async () => { setLoading(true); setError(undefined); try { const data = await api.get<Collection[]>('/collections'); setCollections(data); setSelectedId((id) => id && data.some((item) => item.id === id) ? id : data[0]?.id) } catch { setError({ message: 'Unable to load collections', retry: true }) } finally { setLoading(false) } }, [api])
+  useEffect(() => { void load() }, [load])
   const create = async (name: string) => { try { const collection = await api.post<Collection>('/collections', { name }); setCollections((items) => [collection, ...items]); setSelectedId(collection.id); setCreateOpen(false) } catch { setError({ message: 'Unable to create collection', retry: false }) } }
   const remove = async () => { if (!selected) return; try { await api.delete(`/collections/${selected.id}`); setCollections((items) => { const next = items.filter((item) => item.id !== selected.id); setSelectedId(next[0]?.id); return next }); setDeleteOpen(false) } catch { setError({ message: 'Unable to delete collection', retry: false }) } }
 
