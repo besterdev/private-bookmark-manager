@@ -1,0 +1,184 @@
+# Review package: 527f0d0..0c5096f
+
+## Commits
+0c5096f ⚡️ perf: split frontend route bundles
+
+## Files changed
+ frontend/src/App.test.tsx | 49 +++++++++++++++++++++++++++++++++++++++++++++--
+ frontend/src/App.tsx      | 31 +++++++++++++++++-------------
+ frontend/vite.config.ts   | 13 +++++++++++++
+ 3 files changed, 78 insertions(+), 15 deletions(-)
+
+## Diff
+diff --git a/frontend/src/App.test.tsx b/frontend/src/App.test.tsx
+index 5ce5848..cd15a1b 100644
+--- a/frontend/src/App.test.tsx
++++ b/frontend/src/App.test.tsx
+@@ -1,38 +1,83 @@
+ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+ import { afterEach, expect, it, vi } from 'vitest'
+ import App from './App'
+ 
++const auth0 = vi.hoisted(() => ({
++  getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
++  logout: vi.fn(),
++}))
++
++const collectionRoute = vi.hoisted(() => {
++  let resolve: () => void = () => undefined
++  let promise = Promise.resolve()
++
++  return {
++    isLoading: false,
++    startLoading() {
++      this.isLoading = true
++      promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise })
++    },
++    finishLoading() {
++      this.isLoading = false
++      resolve()
++    },
++    get promise() {
++      return promise
++    },
++  }
++})
++
+ vi.mock('@auth0/auth0-react', () => ({
+   useAuth0: () => ({
+     isLoading: false,
+     isAuthenticated: true,
+-    getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
++    getAccessTokenSilently: auth0.getAccessTokenSilently,
+     user: { name: 'Candidate' },
+-    logout: vi.fn(),
++    logout: auth0.logout,
+   }),
+ }))
+ 
++vi.mock('./routes/CollectionsPage', () => ({
++  default: () => {
++    if (collectionRoute.isLoading) throw collectionRoute.promise
++    return null
++  },
++}))
++
++vi.mock('./routes/AllBookmarksPage', () => ({ default: () => null }))
++vi.mock('./routes/BookmarksPage', () => ({ default: () => null }))
++vi.mock('./routes/CallbackPage', () => ({ default: () => null }))
++
+ vi.mock('./lib/api-client', () => ({
+   createApiClient: () => ({ get: vi.fn().mockResolvedValue([]) }),
+ }))
+ 
+ afterEach(cleanup)
+ 
+ it('renders the shell heading and primary navigation after API access is verified', async () => {
+   render(<App />)
+ 
+   expect(await screen.findByRole('heading', { name: 'Private Bookmark Manager' })).toBeVisible()
+   expect(screen.getByRole('link', { name: 'Collections' })).toBeVisible()
+   expect(screen.getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+ })
+ 
++it('shows a full-page loading status while an authenticated route module loads', async () => {
++  collectionRoute.startLoading()
++  render(<App />)
++
++  expect(await screen.findByRole('status', { name: 'Loading page…' })).toBeVisible()
++  collectionRoute.finishLoading()
++  await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading page…' })).not.toBeInTheDocument())
++})
++
+ it('opens mobile navigation with all application routes and closes it with the close button', async () => {
+   render(<App />)
+   await screen.findByRole('heading', { name: 'Private Bookmark Manager' })
+ 
+   fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+ 
+   const mobileNavigation = screen.getByRole('navigation', { name: 'Mobile navigation' })
+   expect(within(mobileNavigation).getByRole('link', { name: 'All bookmarks' })).toBeVisible()
+   expect(within(mobileNavigation).getByRole('link', { name: 'Collections' })).toBeVisible()
+   expect(within(mobileNavigation).getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+diff --git a/frontend/src/App.tsx b/frontend/src/App.tsx
+index dbe49d6..e22457b 100644
+--- a/frontend/src/App.tsx
++++ b/frontend/src/App.tsx
+@@ -1,31 +1,36 @@
+ import { CssBaseline, ThemeProvider } from "@mui/material"
++import { lazy, Suspense } from "react"
+ import { BrowserRouter, Navigate, Route, Routes } from "react-router"
+ 
+ import AuthGate from "./auth/AuthGate"
++import LoadingState from "./components/states/LoadingState"
+ import AppShell from "./layout/AppShell"
+-import AllBookmarksPage from "./routes/AllBookmarksPage"
+-import BookmarksPage from "./routes/BookmarksPage"
+-import CallbackPage from "./routes/CallbackPage"
+-import CollectionsPage from "./routes/CollectionsPage"
+ import { appTheme } from "./theme"
+ 
++const AllBookmarksPage = lazy(() => import("./routes/AllBookmarksPage"))
++const BookmarksPage = lazy(() => import("./routes/BookmarksPage"))
++const CallbackPage = lazy(() => import("./routes/CallbackPage"))
++const CollectionsPage = lazy(() => import("./routes/CollectionsPage"))
++
+ export default function App() {
+   return (
+     <ThemeProvider theme={appTheme}>
+       <CssBaseline />
+       <AuthGate>
+         <BrowserRouter>
+-          <Routes>
+-            <Route element={<AppShell />}>
+-              <Route index element={<Navigate replace to="/collections" />} />
+-              <Route path="all" element={<AllBookmarksPage />} />
+-              <Route path="collections" element={<CollectionsPage />} />
+-              <Route path="bookmarks" element={<BookmarksPage />} />
+-            </Route>
+-            <Route path="callback" element={<CallbackPage />} />
+-          </Routes>
++          <Suspense fallback={<LoadingState label="Loading page…" minHeight="100vh" />}>
++            <Routes>
++              <Route element={<AppShell />}>
++                <Route index element={<Navigate replace to="/collections" />} />
++                <Route path="all" element={<AllBookmarksPage />} />
++                <Route path="collections" element={<CollectionsPage />} />
++                <Route path="bookmarks" element={<BookmarksPage />} />
++              </Route>
++              <Route path="callback" element={<CallbackPage />} />
++            </Routes>
++          </Suspense>
+         </BrowserRouter>
+       </AuthGate>
+     </ThemeProvider>
+   )
+ }
+diff --git a/frontend/vite.config.ts b/frontend/vite.config.ts
+index cc4cfed..5b07635 100644
+--- a/frontend/vite.config.ts
++++ b/frontend/vite.config.ts
+@@ -1,10 +1,23 @@
+ import { defineConfig } from 'vitest/config'
+ import react from '@vitejs/plugin-react'
+ 
+ export default defineConfig({
+   plugins: [react()],
++  build: {
++    rollupOptions: {
++      output: {
++        manualChunks(id) {
++          if (id.includes('/node_modules/@mui/icons-material/')) return 'mui-icons'
++          if (id.includes('/node_modules/@mui/') || id.includes('/node_modules/@emotion/')) return 'mui-core'
++          if (id.includes('/node_modules/@auth0/')) return 'auth0'
++          if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/react-router/')) return 'react-router'
++          return undefined
++        },
++      },
++    },
++  },
+   test: {
+     environment: 'jsdom',
+     setupFiles: ['./src/test/setup.ts'],
+   },
+ })

@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
 import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
@@ -36,7 +36,7 @@ export default function BookmarksPage() {
     [collections],
   )
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     setError(undefined)
 
@@ -52,16 +52,16 @@ export default function BookmarksPage() {
       ])
       setCollections(options)
       setItems(filter === 'none' ? next.filter((item) => !item.collectionId) : next)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
+    } catch {
+      setError({ message: 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
-  }
+  }, [api, filter, submittedSearch])
 
   useEffect(() => {
     void load()
-  }, [api, filter, submittedSearch])
+  }, [load])
 
   const create = async (value: {
     title: string
@@ -73,8 +73,8 @@ export default function BookmarksPage() {
       const item = await api.post<Bookmark>('/bookmarks', value)
       setItems((current) => [item, ...current])
       setCreateOpen(false)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to create bookmark', retry: false })
+    } catch {
+      setError({ message: 'Unable to create bookmark', retry: false })
     }
   }
 

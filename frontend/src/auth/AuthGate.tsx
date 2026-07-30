@@ -28,7 +28,7 @@ export default function AuthGate({ children }: AuthGateProps) {
 
     void api.get('/me')
       .then(() => { if (active) { setApiError(undefined); setApiReady(true) } })
-      .catch((cause: unknown) => { if (active) setApiError(cause instanceof Error ? cause.message : 'Unable to verify API access') })
+      .catch(() => { if (active) setApiError('Unable to verify API access') })
 
     return () => { active = false }
   }, [getAccessTokenSilently, isAuthenticated, retry])
@@ -43,7 +43,7 @@ export default function AuthGate({ children }: AuthGateProps) {
     return <Box sx={{ display: 'grid', minHeight: '100vh', placeItems: 'center', p: 3 }}><Stack spacing={2} sx={{ alignItems: 'center', maxWidth: 360, textAlign: 'center' }}><Typography component="h1" variant="h4">Private Bookmark Manager</Typography><Typography color="text.secondary">Save and organize links that only you can access.</Typography><Button variant="contained" onClick={() => loginWithRedirect({ appState: { returnTo: window.location.pathname } })}>Sign in</Button></Stack></Box>
   }
 
-  if (apiError) return <Box sx={{ p: 3 }}><ErrorState message={`API access verification failed: ${apiError}`} onRetry={() => setRetry((value) => value + 1)} /></Box>
+  if (apiError) return <Box sx={{ p: 3 }}><ErrorState message={apiError} onRetry={() => setRetry((value) => value + 1)} /></Box>
 
   if (!apiReady) {
     return <LoadingState label="Verifying API access…" minHeight="100vh" />

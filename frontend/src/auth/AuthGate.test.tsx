@@ -6,6 +6,7 @@ import AuthGate from './AuthGate'
 const loginWithRedirect = vi.fn()
 const useAuth0 = vi.fn()
 const apiGet = vi.hoisted(() => vi.fn())
+const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
 
 vi.mock('@auth0/auth0-react', () => ({ useAuth0: () => useAuth0() }))
 vi.mock('../lib/api-client', () => ({ createApiClient: () => ({ get: apiGet }) }))
@@ -39,7 +40,7 @@ it('shows a loading state while Auth0 initializes', () => {
 })
 
 it('retries API access verification after a failure', async () => {
-  apiGet.mockRejectedValueOnce(new Error('Network unavailable')).mockResolvedValueOnce({})
+  apiGet.mockRejectedValueOnce(new Error(sensitive)).mockResolvedValueOnce({})
   useAuth0.mockReturnValue({
     isLoading: false,
     error: undefined,
@@ -49,7 +50,8 @@ it('retries API access verification after a failure', async () => {
 
   render(<AuthGate><div>Private content</div></AuthGate>)
 
-  expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable')
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to verify API access')
+  expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
   expect(await screen.findByText('Private content')).toBeVisible()
   expect(apiGet).toHaveBeenCalledTimes(2)

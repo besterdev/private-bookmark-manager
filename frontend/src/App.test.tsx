@@ -2,15 +2,51 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, expect, it, vi } from 'vitest'
 import App from './App'
 
+const auth0 = vi.hoisted(() => ({
+  getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
+  logout: vi.fn(),
+}))
+
+const collectionRoute = vi.hoisted(() => {
+  let resolve: () => void = () => undefined
+  let promise = Promise.resolve()
+
+  return {
+    isLoading: false,
+    startLoading() {
+      this.isLoading = true
+      promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise })
+    },
+    finishLoading() {
+      this.isLoading = false
+      resolve()
+    },
+    get promise() {
+      return promise
+    },
+  }
+})
+
 vi.mock('@auth0/auth0-react', () => ({
   useAuth0: () => ({
     isLoading: false,
     isAuthenticated: true,
-    getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
+    getAccessTokenSilently: auth0.getAccessTokenSilently,
     user: { name: 'Candidate' },
-    logout: vi.fn(),
+    logout: auth0.logout,
   }),
 }))
+
+vi.mock('./routes/CollectionsPage', () => ({
+  default: () => {
+    if (collectionRoute.isLoading) throw collectionRoute.promise
+    return null
+  },
+}))
+
+vi.mock('./routes/AllBookmarksPage', () => ({ default: () => null }))
+vi.mock('./routes/BookmarksPage', () => ({ default: () => null }))
+vi.mock('./routes/CallbackPage', () => ({ default: () => null }))
 
 vi.mock('./lib/api-client', () => ({
   createApiClient: () => ({ get: vi.fn().mockResolvedValue([]) }),
@@ -24,6 +60,15 @@ it('renders the shell heading and primary navigation after API access is verifie
   expect(await screen.findByRole('heading', { name: 'Private Bookmark Manager' })).toBeVisible()
   expect(screen.getByRole('link', { name: 'Collections' })).toBeVisible()
   expect(screen.getByRole('link', { name: 'Bookmarks' })).toBeVisible()
+})
+
+it('shows a full-page loading status while an authenticated route module loads', async () => {
+  collectionRoute.startLoading()
+  render(<App />)
+
+  expect(await screen.findByRole('status', { name: 'Loading page…' })).toBeVisible()
+  collectionRoute.finishLoading()
+  await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading page…' })).not.toBeInTheDocument())
 })
 
 it('opens mobile navigation with all application routes and closes it with the close button', async () => {
