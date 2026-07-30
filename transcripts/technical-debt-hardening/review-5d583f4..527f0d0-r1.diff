@@ -1,0 +1,416 @@
+# Review package: 5d583f4..527f0d0
+
+## Commits
+527f0d0 ✅ test: cover effect dependency rerenders
+928e9a3 🐛 fix: align frontend effect dependencies
+
+## Files changed
+ .../features/collections/CollectionDetail.test.tsx | 26 ++++++++++-
+ .../src/features/collections/CollectionDetail.tsx  |  7 +--
+ frontend/src/routes/BookmarksPage.test.tsx         | 51 +++++++++++++++++-----
+ frontend/src/routes/BookmarksPage.tsx              |  8 ++--
+ frontend/src/routes/CollectionsPage.test.tsx       | 48 +++++++++++++++++---
+ frontend/src/routes/CollectionsPage.tsx            |  4 +-
+ 6 files changed, 118 insertions(+), 26 deletions(-)
+
+## Diff
+diff --git a/frontend/src/features/collections/CollectionDetail.test.tsx b/frontend/src/features/collections/CollectionDetail.test.tsx
+index e4baa70..5f679d2 100644
+--- a/frontend/src/features/collections/CollectionDetail.test.tsx
++++ b/frontend/src/features/collections/CollectionDetail.test.tsx
+@@ -1,23 +1,45 @@
+-import { fireEvent, render, screen } from '@testing-library/react'
+-import { expect, it, vi } from 'vitest'
++import { cleanup, fireEvent, render, screen } from '@testing-library/react'
++import { afterEach, expect, it, vi } from 'vitest'
+ 
+ import CollectionDetail from './CollectionDetail'
+ 
+ const collection = { id: 'c1', name: 'Work', createdAt: '2026-07-28T00:00:00.000Z', updatedAt: '2026-07-28T00:00:00.000Z' }
+ const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
+ 
++afterEach(cleanup)
++
+ it('shows a loading indicator while selected collection bookmarks are requested', () => {
+   render(<CollectionDetail collection={collection} getBookmarks={() => new Promise(() => {})} onDelete={vi.fn()} />)
+ 
+   expect(screen.getByRole('progressbar')).toBeVisible()
+ })
+ 
+ it('offers Retry after bookmark loading fails', async () => {
+   const getBookmarks = vi.fn().mockRejectedValue(new Error(sensitive))
+   render(<CollectionDetail collection={collection} getBookmarks={getBookmarks} onDelete={vi.fn()} />)
+ 
+   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load collection bookmarks')
+   expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
+   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+   expect(getBookmarks).toHaveBeenCalledTimes(2)
+ })
++
++it('requests bookmarks for the newly selected collection', async () => {
++  const api = { get: vi.fn().mockResolvedValue([]) }
++  const getBookmarks = (collectionId: string) => api.get(`/collections/${collectionId}/bookmarks`)
++  const { rerender } = render(<CollectionDetail collection={collection} getBookmarks={getBookmarks} onDelete={vi.fn()} />)
++
++  expect(await screen.findByRole('heading', { name: 'Work' })).toBeVisible()
++  expect(api.get).toHaveBeenCalledWith('/collections/c1/bookmarks')
++
++  rerender(
++    <CollectionDetail
++      collection={{ ...collection, id: 'collection-2', name: 'Personal' }}
++      getBookmarks={getBookmarks}
++      onDelete={vi.fn()}
++    />,
++  )
++
++  expect(await screen.findByText('Personal')).toBeVisible()
++  expect(api.get).toHaveBeenCalledWith('/collections/collection-2/bookmarks')
++})
+diff --git a/frontend/src/features/collections/CollectionDetail.tsx b/frontend/src/features/collections/CollectionDetail.tsx
+index a4ac629..e14c8f2 100644
+--- a/frontend/src/features/collections/CollectionDetail.tsx
++++ b/frontend/src/features/collections/CollectionDetail.tsx
+@@ -5,28 +5,29 @@ import ErrorState from '../../components/states/ErrorState'
+ import LoadingState from '../../components/states/LoadingState'
+ import type { Bookmark } from '../bookmarks/types'
+ import BookmarkCardGrid from './BookmarkCardGrid'
+ import type { Collection } from './types'
+ 
+ export default function CollectionDetail({ collection, getBookmarks, onDelete }: { collection?: Collection; getBookmarks: (collectionId: string) => Promise<Bookmark[]>; onDelete: () => void }) {
+   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
+   const [error, setError] = useState<string>()
+   const [loading, setLoading] = useState(false)
+   const [retry, setRetry] = useState(0)
++  const collectionId = collection?.id
+ 
+   useEffect(() => {
+-    if (!collection) return
++    if (!collectionId) return
+ 
+     let active = true
+     setLoading(true)
+     setError(undefined)
+-    void getBookmarks(collection.id)
++    void getBookmarks(collectionId)
+       .then((data) => { if (active) setBookmarks(data) })
+       .catch(() => { if (active) setError('Unable to load collection bookmarks') })
+       .finally(() => { if (active) setLoading(false) })
+ 
+     return () => { active = false }
+-  }, [collection?.id, getBookmarks, retry])
++  }, [collectionId, getBookmarks, retry])
+ 
+   if (!collection) return <Paper sx={{ p: 3 }} variant="outlined"><Typography color="text.secondary">Select a collection to view its details.</Typography></Paper>
+   return <Paper sx={{ p: 3 }} variant="outlined"><Stack spacing={2}><Typography component="h2" variant="h4">{collection.name}</Typography><Typography color="text.secondary">Created {new Date(collection.createdAt).toLocaleDateString()}</Typography>{loading ? <LoadingState label="Loading collection bookmarks" minHeight={80} /> : error ? <ErrorState message={error} onRetry={() => setRetry((value) => value + 1)} /> : <BookmarkCardGrid bookmarks={bookmarks} />}<Button color="error" onClick={onDelete} sx={{ alignSelf: 'start' }}>Delete collection</Button></Stack></Paper>
+ }
+diff --git a/frontend/src/routes/BookmarksPage.test.tsx b/frontend/src/routes/BookmarksPage.test.tsx
+index 3461d61..a024020 100644
+--- a/frontend/src/routes/BookmarksPage.test.tsx
++++ b/frontend/src/routes/BookmarksPage.test.tsx
+@@ -1,35 +1,52 @@
+ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+-import { afterEach, expect, it, vi } from 'vitest'
++import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+ import BookmarksPage from './BookmarksPage'
+ 
+-const api = vi.hoisted(() => ({
+-  delete: vi.fn(),
+-  get: vi.fn(),
+-  post: vi.fn(),
+-}))
+-const getAccessTokenSilently = vi.hoisted(() => vi.fn().mockResolvedValue('access-token'))
++const mocks = vi.hoisted(() => {
++  const initialToken = vi.fn().mockResolvedValue('access-token')
++  const rerenderToken = vi.fn().mockResolvedValue('updated-access-token')
++
++  return {
++    api: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
++    createApiClient: vi.fn(),
++    initialToken,
++    rerenderApi: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
++    rerenderToken,
++    currentToken: initialToken,
++  }
++})
++const api = mocks.api
+ const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
+ 
+ vi.mock('@auth0/auth0-react', () => ({
+-  useAuth0: () => ({ getAccessTokenSilently }),
++  useAuth0: () => ({ getAccessTokenSilently: mocks.currentToken }),
+ }))
+ 
+ vi.mock('../lib/api-client', () => ({
+-  createApiClient: () => api,
++  createApiClient: mocks.createApiClient,
+ }))
+ 
++beforeEach(() => {
++  mocks.createApiClient.mockReset()
++  mocks.createApiClient.mockReturnValue(mocks.api)
++})
++
+ afterEach(() => {
+   cleanup()
+   api.delete.mockReset()
+   api.get.mockReset()
+   api.post.mockReset()
++  mocks.rerenderApi.delete.mockReset()
++  mocks.rerenderApi.get.mockReset()
++  mocks.rerenderApi.post.mockReset()
++  mocks.currentToken = mocks.initialToken
+ })
+ 
+ it('deletes a bookmark after confirmation', async () => {
+   api.get
+     .mockResolvedValueOnce([
+       {
+         id: 'bookmark-1',
+         title: 'MUI',
+         url: 'https://mui.com',
+         notes: null,
+@@ -141,26 +158,40 @@ it('keeps creation open and reports a failed bookmark create', async () => {
+   fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'MUI' } })
+   fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'https://mui.com' } })
+   fireEvent.click(screen.getByRole('button', { name: 'Save bookmark' }))
+ 
+   expect(await screen.findByText('Unable to create bookmark')).toBeVisible()
+   expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
+   expect(screen.getByRole('dialog', { name: 'Create bookmark' })).toBeVisible()
+   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+ })
+ 
+-it('combines search with the selected collection filter', async () => {
++it('requests the submitted query with the selected collection filter', async () => {
+   api.get
+     .mockResolvedValueOnce([])
+     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
+     .mockResolvedValue([])
+   render(<BookmarksPage />)
+ 
+   await screen.findByRole('heading', { name: 'Bookmarks' })
+   fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Filter collection' }))
+   fireEvent.click(await screen.findByRole('option', { name: 'Design' }))
+   await screen.findByRole('heading', { name: 'Bookmarks' })
+   fireEvent.change(screen.getByLabelText('Search bookmarks'), { target: { value: ' react ' } })
+   fireEvent.submit(screen.getByRole('search'))
+ 
+   await waitFor(() => expect(api.get).toHaveBeenCalledWith('/bookmarks?collectionId=collection-1&q=react'))
+ })
++
++it('reloads through the latest API client after rerender', async () => {
++  api.get.mockResolvedValue([])
++  mocks.rerenderApi.get.mockResolvedValue([])
++  mocks.createApiClient.mockReturnValueOnce(api).mockReturnValueOnce(mocks.rerenderApi)
++  const { rerender } = render(<BookmarksPage />)
++
++  await screen.findByRole('heading', { name: 'Bookmarks' })
++  mocks.currentToken = mocks.rerenderToken
++  rerender(<BookmarksPage />)
++
++  await waitFor(() => expect(mocks.rerenderApi.get).toHaveBeenCalledWith('/bookmarks'))
++  expect(mocks.rerenderApi.get).toHaveBeenCalledWith('/collections')
++})
+diff --git a/frontend/src/routes/BookmarksPage.tsx b/frontend/src/routes/BookmarksPage.tsx
+index 6e9c5f9..2996845 100644
+--- a/frontend/src/routes/BookmarksPage.tsx
++++ b/frontend/src/routes/BookmarksPage.tsx
+@@ -1,21 +1,21 @@
+ import { useAuth0 } from '@auth0/auth0-react'
+ import { Add } from '@mui/icons-material'
+ import {
+   Box,
+   Button,
+   MenuItem,
+   Stack,
+   TextField,
+   Typography,
+ } from '@mui/material'
+-import { useEffect, useMemo, useState } from 'react'
++import { useCallback, useEffect, useMemo, useState } from 'react'
+ import ErrorState from '../components/states/ErrorState'
+ import LoadingState from '../components/states/LoadingState'
+ import BookmarkCardGrid from '../features/bookmarks/BookmarkCardGrid'
+ import BookmarkDeleteDialog from '../features/bookmarks/BookmarkDeleteDialog'
+ import BookmarkDialog from '../features/bookmarks/BookmarkDialog'
+ import BookmarkSearchToolbar from '../features/bookmarks/BookmarkSearchToolbar'
+ import type { Bookmark, CollectionOption } from '../features/bookmarks/types'
+ import { createApiClient } from '../lib/api-client'
+ 
+ export default function BookmarksPage() {
+@@ -29,46 +29,46 @@ export default function BookmarksPage() {
+   const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark>()
+   const [loading, setLoading] = useState(true)
+   const [error, setError] = useState<{ message: string; retry: boolean }>()
+   const [createOpen, setCreateOpen] = useState(false)
+ 
+   const collectionNameById = useMemo(
+     () => Object.fromEntries(collections.map((collection) => [collection.id, collection.name])),
+     [collections],
+   )
+ 
+-  const load = async () => {
++  const load = useCallback(async () => {
+     setLoading(true)
+     setError(undefined)
+ 
+     try {
+       const params = new URLSearchParams()
+       if (filter !== 'all' && filter !== 'none') params.set('collectionId', filter)
+       const query = submittedSearch.trim()
+       if (query) params.set('q', query)
+       const bookmarkPath = params.size > 0 ? `/bookmarks?${params.toString()}` : '/bookmarks'
+       const [next, options] = await Promise.all([
+         api.get<Bookmark[]>(bookmarkPath),
+         api.get<CollectionOption[]>('/collections'),
+       ])
+       setCollections(options)
+       setItems(filter === 'none' ? next.filter((item) => !item.collectionId) : next)
+     } catch {
+       setError({ message: 'Unable to load bookmarks', retry: true })
+     } finally {
+       setLoading(false)
+     }
+-  }
++  }, [api, filter, submittedSearch])
+ 
+   useEffect(() => {
+     void load()
+-  }, [api, filter, submittedSearch])
++  }, [load])
+ 
+   const create = async (value: {
+     title: string
+     url: string
+     notes?: string
+     collectionId?: string | null
+   }) => {
+     try {
+       const item = await api.post<Bookmark>('/bookmarks', value)
+       setItems((current) => [item, ...current])
+diff --git a/frontend/src/routes/CollectionsPage.test.tsx b/frontend/src/routes/CollectionsPage.test.tsx
+index 7d5f670..6cc1d30 100644
+--- a/frontend/src/routes/CollectionsPage.test.tsx
++++ b/frontend/src/routes/CollectionsPage.test.tsx
+@@ -1,53 +1,91 @@
+-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+-import { afterEach, expect, it, vi } from 'vitest'
++import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
++import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+ import CollectionsPage from './CollectionsPage'
+ 
+-const api = vi.hoisted(() => ({ delete: vi.fn(), get: vi.fn(), post: vi.fn() }))
++const mocks = vi.hoisted(() => {
++  const initialToken = vi.fn().mockResolvedValue('access-token')
++  const rerenderToken = vi.fn().mockResolvedValue('updated-access-token')
++
++  return {
++    api: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
++    createApiClient: vi.fn(),
++    initialToken,
++    rerenderApi: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
++    rerenderToken,
++    currentToken: initialToken,
++  }
++})
++const api = mocks.api
+ const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
+ 
+ vi.mock('@auth0/auth0-react', () => ({
+-  useAuth0: () => ({ getAccessTokenSilently: vi.fn().mockResolvedValue('access-token') }),
++  useAuth0: () => ({ getAccessTokenSilently: mocks.currentToken }),
+ }))
+ 
+-vi.mock('../lib/api-client', () => ({ createApiClient: () => api }))
++vi.mock('../lib/api-client', () => ({
++  createApiClient: mocks.createApiClient,
++}))
++
++beforeEach(() => {
++  mocks.createApiClient.mockReset()
++  mocks.createApiClient.mockReturnValue(mocks.api)
++})
+ 
+ afterEach(() => {
+   cleanup()
+   api.delete.mockReset()
+   api.get.mockReset()
+   api.post.mockReset()
++  mocks.rerenderApi.delete.mockReset()
++  mocks.rerenderApi.get.mockReset()
++  mocks.rerenderApi.post.mockReset()
++  mocks.currentToken = mocks.initialToken
+ })
+ 
+ it('opens collection creation from the shared empty state', async () => {
+   api.get.mockResolvedValueOnce([])
+   render(<CollectionsPage />)
+ 
+   fireEvent.click((await screen.findAllByRole('button', { name: 'Create collection' }))[1])
+   expect(screen.getByRole('dialog', { name: 'Create collection' })).toBeVisible()
+ })
+ 
+ it('retries a failed collection request', async () => {
+   api.get.mockRejectedValueOnce(new Error(sensitive)).mockResolvedValueOnce([])
+   render(<CollectionsPage />)
+ 
+   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load collections')
+   expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
+   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+   expect(await screen.findByText('No collections yet')).toBeVisible()
+   expect(api.get).toHaveBeenCalledTimes(2)
++  expect(api.get).toHaveBeenLastCalledWith('/collections')
+ })
+ 
+ it('keeps creation open and reports a failed collection create', async () => {
+   api.get.mockResolvedValueOnce([])
+   api.post.mockRejectedValueOnce(new Error(sensitive))
+   render(<CollectionsPage />)
+ 
+   fireEvent.click((await screen.findAllByRole('button', { name: 'Create collection' }))[1])
+   fireEvent.change(screen.getByLabelText('Collection name'), { target: { value: 'Work' } })
+   fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+ 
+   expect(await screen.findByText('Unable to create collection')).toBeVisible()
+   expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
+   expect(screen.getByRole('dialog', { name: 'Create collection' })).toBeVisible()
+   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+ })
++
++it('reloads collections through the latest API client after rerender', async () => {
++  api.get.mockResolvedValue([])
++  mocks.rerenderApi.get.mockResolvedValue([])
++  mocks.createApiClient.mockReturnValueOnce(api).mockReturnValueOnce(mocks.rerenderApi)
++  const { rerender } = render(<CollectionsPage />)
++
++  await screen.findByText('No collections yet')
++  mocks.currentToken = mocks.rerenderToken
++  rerender(<CollectionsPage />)
++
++  await waitFor(() => expect(mocks.rerenderApi.get).toHaveBeenCalledWith('/collections'))
++})
+diff --git a/frontend/src/routes/CollectionsPage.tsx b/frontend/src/routes/CollectionsPage.tsx
+index a4d02f0..335c527 100644
+--- a/frontend/src/routes/CollectionsPage.tsx
++++ b/frontend/src/routes/CollectionsPage.tsx
+@@ -17,18 +17,18 @@ export default function CollectionsPage() {
+   const { getAccessTokenSilently } = useAuth0()
+   const api = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+   const getBookmarks = useCallback((collectionId: string) => api.get<Bookmark[]>(`/collections/${collectionId}/bookmarks`), [api])
+   const [collections, setCollections] = useState<Collection[]>([])
+   const [selectedId, setSelectedId] = useState<string>()
+   const [loading, setLoading] = useState(true)
+   const [error, setError] = useState<{ message: string; retry: boolean }>()
+   const [createOpen, setCreateOpen] = useState(false)
+   const [deleteOpen, setDeleteOpen] = useState(false)
+   const selected = collections.find((collection) => collection.id === selectedId)
+-  const load = async () => { setLoading(true); setError(undefined); try { const data = await api.get<Collection[]>('/collections'); setCollections(data); setSelectedId((id) => id && data.some((item) => item.id === id) ? id : data[0]?.id) } catch { setError({ message: 'Unable to load collections', retry: true }) } finally { setLoading(false) } }
+-  useEffect(() => { void load() }, [api])
++  const load = useCallback(async () => { setLoading(true); setError(undefined); try { const data = await api.get<Collection[]>('/collections'); setCollections(data); setSelectedId((id) => id && data.some((item) => item.id === id) ? id : data[0]?.id) } catch { setError({ message: 'Unable to load collections', retry: true }) } finally { setLoading(false) } }, [api])
++  useEffect(() => { void load() }, [load])
+   const create = async (name: string) => { try { const collection = await api.post<Collection>('/collections', { name }); setCollections((items) => [collection, ...items]); setSelectedId(collection.id); setCreateOpen(false) } catch { setError({ message: 'Unable to create collection', retry: false }) } }
+   const remove = async () => { if (!selected) return; try { await api.delete(`/collections/${selected.id}`); setCollections((items) => { const next = items.filter((item) => item.id !== selected.id); setSelectedId(next[0]?.id); return next }); setDeleteOpen(false) } catch { setError({ message: 'Unable to delete collection', retry: false }) } }
+ 
+   if (loading) return <LoadingState label="Loading collections" />
+   return <Stack spacing={3}><Stack direction="row" sx={{ justifyContent: 'space-between' }}><Box><Typography component="h2" variant="h4">Collections</Typography><Typography color="text.secondary">Organize your private bookmarks.</Typography></Box><Button onClick={() => setCreateOpen(true)} startIcon={<Add />} variant="contained">Create collection</Button></Stack>{error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}{collections.length === 0 ? <EmptyState actionLabel="Create collection" description="Create a collection to organize your bookmarks." onAction={() => setCreateOpen(true)} title="No collections yet" /> : <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { md: 'minmax(240px, 0.8fr) minmax(0, 1.7fr)' } }}><CollectionList collections={collections} onSelect={setSelectedId} selectedId={selectedId} /><CollectionDetail collection={selected} getBookmarks={getBookmarks} onDelete={() => setDeleteOpen(true)} /></Box>}<CollectionDialog onClose={() => setCreateOpen(false)} onSubmit={(name) => void create(name)} open={createOpen} /><Dialog onClose={() => setDeleteOpen(false)} open={deleteOpen}><DialogTitle>Delete collection?</DialogTitle><DialogContent>This keeps its bookmarks, but makes them uncategorized.</DialogContent><DialogActions><Button onClick={() => setDeleteOpen(false)}>Cancel</Button><Button color="error" onClick={() => void remove()}>Delete</Button></DialogActions></Dialog></Stack>
+ }
