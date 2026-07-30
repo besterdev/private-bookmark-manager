@@ -8,7 +8,7 @@ Run the project's required quality checks automatically for every pull request t
 
 Create one GitHub Actions workflow at `.github/workflows/ci.yml`. It runs only on the `pull_request` event when the pull request base branch is `main`.
 
-The workflow uses Ubuntu, Node.js `22.19.0`, and Bun. It installs dependencies reproducibly with `bun ci`, generates the Prisma client, and then runs the existing repository quality commands.
+The workflow uses Ubuntu, Node.js `22.19.0`, Bun, and a disposable MySQL 8.4 service. It installs dependencies reproducibly with `bun ci`, generates the Prisma client, applies committed migrations, and then runs the existing repository quality commands.
 
 ## Workflow
 
@@ -18,14 +18,15 @@ The single `quality` job runs these steps in order:
 2. Set up Node.js `22.19.0`.
 3. Set up Bun.
 4. Install the lockfile-pinned workspace dependencies with `bun ci`.
-5. Run `bun --cwd backend x prisma generate`.
-6. Run a non-mutating lint command for the backend and the existing frontend lint script. The backend's `lint` script is intentionally not used because it includes `--fix`.
-7. Run `bun run typecheck`.
-8. Run `bun run test` with placeholder `AUTH0_ISSUER_URL` and `AUTH0_AUDIENCE` environment variables required by the backend test suite.
-9. Run `bun run test:e2e` with the same placeholder Auth0 environment variables.
-10. Run `bun run build`.
+5. Start a disposable MySQL 8.4 service with a health check.
+6. Run `bun x prisma generate` and `bun x prisma migrate deploy` from `backend/`.
+7. Run a non-mutating lint command for the backend and the existing frontend lint script. The backend's `lint` script is intentionally not used because it includes `--fix`.
+8. Run `bun run typecheck`.
+9. Run `bun run test` with test-only `DATABASE_URL`, `AUTH0_ISSUER_URL`, and `AUTH0_AUDIENCE` environment variables.
+10. Run `bun run test:e2e` against the disposable MySQL service.
+11. Run `bun run build`.
 
-The checks use deterministic test fixtures and mocked authentication boundaries. The workflow does not access live Auth0, a database service, Docker, or repository secrets.
+The checks use deterministic test fixtures and mocked authentication boundaries. MySQL credentials are fixed test-only values scoped to the disposable CI service. The workflow does not access live Auth0, Docker, or repository secrets.
 
 ## Documentation
 
