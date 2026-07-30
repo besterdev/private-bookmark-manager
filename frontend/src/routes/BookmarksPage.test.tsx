@@ -1,28 +1,45 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import BookmarksPage from './BookmarksPage'
 
-const api = vi.hoisted(() => ({
-  delete: vi.fn(),
-  get: vi.fn(),
-  post: vi.fn(),
-}))
-const getAccessTokenSilently = vi.hoisted(() => vi.fn().mockResolvedValue('access-token'))
+const mocks = vi.hoisted(() => {
+  const initialToken = vi.fn().mockResolvedValue('access-token')
+  const rerenderToken = vi.fn().mockResolvedValue('updated-access-token')
+
+  return {
+    api: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
+    createApiClient: vi.fn(),
+    initialToken,
+    rerenderApi: { delete: vi.fn(), get: vi.fn(), post: vi.fn() },
+    rerenderToken,
+    currentToken: initialToken,
+  }
+})
+const api = mocks.api
 const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
 
 vi.mock('@auth0/auth0-react', () => ({
-  useAuth0: () => ({ getAccessTokenSilently }),
+  useAuth0: () => ({ getAccessTokenSilently: mocks.currentToken }),
 }))
 
 vi.mock('../lib/api-client', () => ({
-  createApiClient: () => api,
+  createApiClient: mocks.createApiClient,
 }))
+
+beforeEach(() => {
+  mocks.createApiClient.mockReset()
+  mocks.createApiClient.mockReturnValue(mocks.api)
+})
 
 afterEach(() => {
   cleanup()
   api.delete.mockReset()
   api.get.mockReset()
   api.post.mockReset()
+  mocks.rerenderApi.delete.mockReset()
+  mocks.rerenderApi.get.mockReset()
+  mocks.rerenderApi.post.mockReset()
+  mocks.currentToken = mocks.initialToken
 })
 
 it('deletes a bookmark after confirmation', async () => {
@@ -163,4 +180,18 @@ it('requests the submitted query with the selected collection filter', async () 
   fireEvent.submit(screen.getByRole('search'))
 
   await waitFor(() => expect(api.get).toHaveBeenCalledWith('/bookmarks?collectionId=collection-1&q=react'))
+})
+
+it('reloads through the latest API client after rerender', async () => {
+  api.get.mockResolvedValue([])
+  mocks.rerenderApi.get.mockResolvedValue([])
+  mocks.createApiClient.mockReturnValueOnce(api).mockReturnValueOnce(mocks.rerenderApi)
+  const { rerender } = render(<BookmarksPage />)
+
+  await screen.findByRole('heading', { name: 'Bookmarks' })
+  mocks.currentToken = mocks.rerenderToken
+  rerender(<BookmarksPage />)
+
+  await waitFor(() => expect(mocks.rerenderApi.get).toHaveBeenCalledWith('/bookmarks'))
+  expect(mocks.rerenderApi.get).toHaveBeenCalledWith('/collections')
 })

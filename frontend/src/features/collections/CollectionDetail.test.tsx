@@ -25,11 +25,12 @@ it('offers Retry after bookmark loading fails', async () => {
 })
 
 it('requests bookmarks for the newly selected collection', async () => {
-  const getBookmarks = vi.fn().mockResolvedValue([])
+  const api = { get: vi.fn().mockResolvedValue([]) }
+  const getBookmarks = (collectionId: string) => api.get(`/collections/${collectionId}/bookmarks`)
   const { rerender } = render(<CollectionDetail collection={collection} getBookmarks={getBookmarks} onDelete={vi.fn()} />)
 
   expect(await screen.findByRole('heading', { name: 'Work' })).toBeVisible()
-  expect(getBookmarks).toHaveBeenCalledWith('c1')
+  expect(api.get).toHaveBeenCalledWith('/collections/c1/bookmarks')
 
   rerender(
     <CollectionDetail
@@ -40,5 +41,5 @@ it('requests bookmarks for the newly selected collection', async () => {
   )
 
   expect(await screen.findByText('Personal')).toBeVisible()
-  expect(getBookmarks).toHaveBeenCalledWith('collection-2')
+  expect(api.get).toHaveBeenCalledWith('/collections/collection-2/bookmarks')
 })
