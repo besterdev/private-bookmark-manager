@@ -10,6 +10,7 @@ const prisma = new PrismaClient({
     password: decodeURIComponent(databaseUrl.password),
     database: databaseUrl.pathname.slice(1),
     connectionLimit: 5,
+    allowPublicKeyRetrieval: true,
   }),
 });
 
@@ -17,12 +18,20 @@ async function main() {
   await prisma.user.upsert({
     where: { email: 'owner-a@example.test' },
     update: { name: 'Owner A' },
-    create: { id: 'auth0|seed-owner-a', email: 'owner-a@example.test', name: 'Owner A' },
+    create: {
+      id: 'auth0|seed-owner-a',
+      email: 'owner-a@example.test',
+      name: 'Owner A',
+    },
   });
   await prisma.user.upsert({
     where: { email: 'owner-b@example.test' },
     update: { name: 'Owner B' },
-    create: { id: 'auth0|seed-owner-b', email: 'owner-b@example.test', name: 'Owner B' },
+    create: {
+      id: 'auth0|seed-owner-b',
+      email: 'owner-b@example.test',
+      name: 'Owner B',
+    },
   });
 }
 

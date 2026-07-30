@@ -10,6 +10,7 @@ export function createPrismaAdapter(databaseUrlValue: string): PrismaMariaDb {
     password: decodeURIComponent(databaseUrl.password),
     database: databaseUrl.pathname.slice(1),
     connectionLimit: 5,
+    allowPublicKeyRetrieval: true,
   });
 }
 
