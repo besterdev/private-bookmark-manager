@@ -52,8 +52,8 @@ export default function BookmarksPage() {
       ])
       setCollections(options)
       setItems(filter === 'none' ? next.filter((item) => !item.collectionId) : next)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to load bookmarks', retry: true })
+    } catch {
+      setError({ message: 'Unable to load bookmarks', retry: true })
     } finally {
       setLoading(false)
     }
@@ -73,8 +73,8 @@ export default function BookmarksPage() {
       const item = await api.post<Bookmark>('/bookmarks', value)
       setItems((current) => [item, ...current])
       setCreateOpen(false)
-    } catch (cause) {
-      setError({ message: cause instanceof Error ? cause.message : 'Unable to create bookmark', retry: false })
+    } catch {
+      setError({ message: 'Unable to create bookmark', retry: false })
     }
   }
 

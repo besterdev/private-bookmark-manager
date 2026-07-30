@@ -21,7 +21,7 @@ export default function CollectionDetail({ collection, getBookmarks, onDelete }:
     setError(undefined)
     void getBookmarks(collection.id)
       .then((data) => { if (active) setBookmarks(data) })
-      .catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Unable to load bookmarks') })
+      .catch(() => { if (active) setError('Unable to load collection bookmarks') })
       .finally(() => { if (active) setLoading(false) })
 
     return () => { active = false }

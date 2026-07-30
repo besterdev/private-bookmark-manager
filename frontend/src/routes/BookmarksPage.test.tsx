@@ -8,6 +8,7 @@ const api = vi.hoisted(() => ({
   post: vi.fn(),
 }))
 const getAccessTokenSilently = vi.hoisted(() => vi.fn().mockResolvedValue('access-token'))
+const sensitive = 'Internal SQL error: ownerId=auth0|victim password=super-secret'
 
 vi.mock('@auth0/auth0-react', () => ({
   useAuth0: () => ({ getAccessTokenSilently }),
@@ -119,12 +120,13 @@ it('clears a previous delete error after a successful retry', async () => {
 
 it('retries a failed bookmark request', async () => {
   api.get
-    .mockRejectedValueOnce(new Error('Network unavailable'))
+    .mockRejectedValueOnce(new Error(sensitive))
     .mockResolvedValue([])
 
   render(<BookmarksPage />)
 
-  expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable')
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load bookmarks')
+  expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
   expect(await screen.findByText('No bookmarks found.')).toBeVisible()
   expect(api.get).toHaveBeenCalledTimes(4)
@@ -132,7 +134,7 @@ it('retries a failed bookmark request', async () => {
 
 it('keeps creation open and reports a failed bookmark create', async () => {
   api.get.mockResolvedValue([])
-  api.post.mockRejectedValueOnce(new Error('Unable to save bookmark'))
+  api.post.mockRejectedValueOnce(new Error(sensitive))
   render(<BookmarksPage />)
 
   fireEvent.click(await screen.findByRole('button', { name: 'Create bookmark' }))
@@ -140,7 +142,8 @@ it('keeps creation open and reports a failed bookmark create', async () => {
   fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'https://mui.com' } })
   fireEvent.click(screen.getByRole('button', { name: 'Save bookmark' }))
 
-  expect(await screen.findByText('Unable to save bookmark')).toBeVisible()
+  expect(await screen.findByText('Unable to create bookmark')).toBeVisible()
+  expect(screen.queryByText(sensitive)).not.toBeInTheDocument()
   expect(screen.getByRole('dialog', { name: 'Create bookmark' })).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
 })
