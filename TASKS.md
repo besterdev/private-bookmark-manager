@@ -134,6 +134,6 @@ Legend: `[x]` complete, `[ ]` not started, `[-]` in progress or needs verificati
 ## Optional bonuses
 
 - [x] Add Docker configuration
-- [ ] Add CI pipeline
+- [x] Add CI pipeline
 - [x] Add `/all` page for collections with embedded bookmarks
 - [x] Add full-text search for bookmark titles and notes

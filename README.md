@@ -75,6 +75,10 @@ bun run test:e2e
 bun run build
 ```
 
+## Continuous integration
+
+Every pull request targeting `main` runs the GitHub Actions **Quality** check. It starts a disposable MySQL 8.4 service, installs with `bun ci`, generates Prisma, applies migrations, runs non-mutating lint, typecheck, unit/integration tests, E2E tests, and a production build. The workflow uses test-only configuration and does not use repository secrets.
+
 The E2E suite uses deterministic local test users and mocked authentication boundaries; it does not call live Auth0.
 
 ## Features
@@ -99,7 +103,6 @@ See [API_DESIGN.md](API_DESIGN.md) and [DECISIONS.md](DECISIONS.md) for the deta
 ## Intentional exclusions
 
 - Collection sharing is intentionally deferred; all resources remain private to their authenticated owner. See ADR-003 in [DECISIONS.md](DECISIONS.md).
-- CI is not included in this submission.
 
 ## Evidence
 

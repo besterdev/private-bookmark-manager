@@ -4,7 +4,7 @@
 
 **Goal:** Run all project quality gates for every pull request targeting `main`.
 
-**Architecture:** A single GitHub Actions `quality` job checks out a pull-request commit, provisions Node 22.19.0 and Bun, then executes the existing workspace checks in dependency order. The workflow provides only placeholder Auth0 values required by tests and runs backend ESLint directly to avoid the existing mutating `--fix` script.
+**Architecture:** A single GitHub Actions `quality` job checks out a pull-request commit, provisions Node 22.19.0, Bun, and a disposable MySQL 8.4 service, then executes the existing workspace checks in dependency order. The workflow provides fixed test-only configuration values and runs backend ESLint directly to avoid the existing mutating `--fix` script.
 
 **Tech Stack:** GitHub Actions, Ubuntu, Node.js 22.19.0, Bun, Prisma, NestJS, Vitest, Jest.
 
@@ -13,8 +13,8 @@
 - Trigger only on `pull_request` events targeting `main`.
 - Use Node.js `22.19.0` and `bun ci`.
 - Never expose credentials, access tokens, or database URLs.
-- Use `bun --cwd backend x eslint "{src,apps,libs,test}/**/*.ts"` instead of the mutating backend lint script.
-- Provide test-only `AUTH0_ISSUER_URL=https://example.auth0.com/` and `AUTH0_AUDIENCE=https://api.example.test` for backend test commands.
+- Use `bun x eslint "{src,apps,libs,test}/**/*.ts"` from `backend/` instead of the mutating backend lint script.
+- Provide a disposable MySQL 8.4 service and test-only `DATABASE_URL=mysql://ci:ci@127.0.0.1:3306/bookmarks`, `AUTH0_ISSUER_URL=https://example.auth0.com/`, and `AUTH0_AUDIENCE=https://api.example.test` for Prisma and backend test commands.
 - Do not change application behavior, dependencies, or test semantics.
 
 ---
@@ -59,7 +59,20 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: bookmarks
+          MYSQL_USER: ci
+          MYSQL_PASSWORD: ci
+          MYSQL_ROOT_PASSWORD: ci-root
+        ports: [3306:3306]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-root"
+          --health-interval=5s --health-timeout=5s --health-retries=20
     env:
+      DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/bookmarks
       AUTH0_ISSUER_URL: https://example.auth0.com/
       AUTH0_AUDIENCE: https://api.example.test
     steps:
@@ -69,8 +82,12 @@ jobs:
           node-version: 22.19.0
       - uses: oven-sh/setup-bun@v2
       - run: bun ci
-      - run: bun --cwd backend x prisma generate
-      - run: bun --cwd backend x eslint "{src,apps,libs,test}/**/*.ts"
+      - run: bun x prisma generate
+        working-directory: backend
+      - run: bun x prisma migrate deploy
+        working-directory: backend
+      - run: bun x eslint "{src,apps,libs,test}/**/*.ts"
+        working-directory: backend
       - run: bun --cwd frontend lint
       - run: bun run typecheck
       - run: bun run test
@@ -86,17 +103,18 @@ Run:
 rg -n "pull_request:|branches: \[main\]|node-version: 22.19.0|bun ci|prisma generate|--fix|bun run typecheck|bun run test:e2e|bun run build" .github/workflows/ci.yml
 ```
 
-Expected: output contains each positive requirement and contains no `--fix` entry.
+Expected: output contains the pull-request trigger, Node/Bun setup, MySQL service, Prisma generation, migration deployment, and every quality command; it contains no `--fix` entry.
 
 Run the exact CI quality commands locally under Node 22.19.0:
 
 ```bash
-bun --cwd backend x prisma generate
-bun --cwd backend x eslint "{src,apps,libs,test}/**/*.ts"
+cd backend && DATABASE_URL=mysql://ci:ci@127.0.0.1:3306/bookmarks bun x prisma generate
+cd backend && DATABASE_URL=mysql://ci:ci@127.0.0.1:3306/bookmarks bun x prisma migrate deploy
+cd backend && bun x eslint "{src,apps,libs,test}/**/*.ts"
 bun --cwd frontend lint
 bun run typecheck
-AUTH0_ISSUER_URL=https://example.auth0.com/ AUTH0_AUDIENCE=https://api.example.test bun run test
-AUTH0_ISSUER_URL=https://example.auth0.com/ AUTH0_AUDIENCE=https://api.example.test bun run test:e2e
+DATABASE_URL=mysql://ci:ci@127.0.0.1:3306/bookmarks AUTH0_ISSUER_URL=https://example.auth0.com/ AUTH0_AUDIENCE=https://api.example.test bun run test
+DATABASE_URL=mysql://ci:ci@127.0.0.1:3306/bookmarks AUTH0_ISSUER_URL=https://example.auth0.com/ AUTH0_AUDIENCE=https://api.example.test bun run test:e2e
 bun run build
 ```
 
