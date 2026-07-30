@@ -15,7 +15,9 @@ const collectionRoute = vi.hoisted(() => {
     isLoading: false,
     startLoading() {
       this.isLoading = true
-      promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise })
+      promise = new Promise<void>((resolvePromise) => {
+        resolve = resolvePromise
+      })
     },
     finishLoading() {
       this.isLoading = false
@@ -68,7 +70,9 @@ it('shows a full-page loading status while an authenticated route module loads',
 
   expect(await screen.findByRole('status', { name: 'Loading page…' })).toBeVisible()
   collectionRoute.finishLoading()
-  await waitFor(() => expect(screen.queryByRole('status', { name: 'Loading page…' })).not.toBeInTheDocument())
+  await waitFor(() =>
+    expect(screen.queryByRole('status', { name: 'Loading page…' })).not.toBeInTheDocument(),
+  )
 })
 
 it('opens mobile navigation with all application routes and closes it with the close button', async () => {
@@ -84,7 +88,9 @@ it('opens mobile navigation with all application routes and closes it with the c
 
   fireEvent.click(screen.getByRole('button', { name: 'Close navigation' }))
 
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument(),
+  )
 })
 
 it('closes mobile navigation after choosing All bookmarks', async () => {
@@ -94,7 +100,9 @@ it('closes mobile navigation after choosing All bookmarks', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
   fireEvent.click(screen.getAllByRole('link', { name: 'All bookmarks' }).at(-1)!)
 
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument())
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Close navigation' })).not.toBeInTheDocument(),
+  )
 })
 
 it('styles both mobile navigation controls in MUI keyboard-focus state', async () => {

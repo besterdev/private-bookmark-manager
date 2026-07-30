@@ -9,7 +9,12 @@ interface BookmarkSearchToolbarProps {
   value: string
 }
 
-export default function BookmarkSearchToolbar({ children, onChange, onSubmit, value }: BookmarkSearchToolbarProps) {
+export default function BookmarkSearchToolbar({
+  children,
+  onChange,
+  onSubmit,
+  value,
+}: BookmarkSearchToolbarProps) {
   return (
     <Box
       aria-label="Bookmark search"
@@ -28,7 +33,9 @@ export default function BookmarkSearchToolbar({ children, onChange, onSubmit, va
             onChange={(event) => onChange(event.target.value)}
             value={value}
           />
-          <Button startIcon={<Search />} type="submit" variant="contained">Search</Button>
+          <Button startIcon={<Search />} type="submit" variant="contained">
+            Search
+          </Button>
         </Stack>
         {children}
       </Stack>

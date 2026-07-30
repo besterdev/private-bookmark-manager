@@ -26,14 +26,20 @@ export default function BookmarkCardGrid({
       sx={{
         display: 'grid',
         gap: 2,
-        gridTemplateColumns: { lg: 'repeat(3, minmax(0, 1fr))', sm: 'repeat(2, minmax(0, 1fr))', xs: '1fr' },
+        gridTemplateColumns: {
+          lg: 'repeat(3, minmax(0, 1fr))',
+          sm: 'repeat(2, minmax(0, 1fr))',
+          xs: '1fr',
+        },
       }}
     >
       {items.map((bookmark) => (
         <BookmarkCard
           bookmark={bookmark}
           collectionName={
-            bookmark.collectionId ? collectionNameById[bookmark.collectionId] ?? 'Unsorted' : 'Unsorted'
+            bookmark.collectionId
+              ? (collectionNameById[bookmark.collectionId] ?? 'Unsorted')
+              : 'Unsorted'
           }
           key={bookmark.id}
           onDelete={onDelete}

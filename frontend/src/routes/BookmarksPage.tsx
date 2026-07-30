@@ -1,13 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { Add } from '@mui/icons-material'
-import {
-  Box,
-  Button,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import ErrorState from '../components/states/ErrorState'
 import LoadingState from '../components/states/LoadingState'
@@ -20,7 +13,10 @@ import { createApiClient } from '../lib/api-client'
 
 export default function BookmarksPage() {
   const { getAccessTokenSilently } = useAuth0()
-  const api = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+  const api = useMemo(
+    () => createApiClient(() => getAccessTokenSilently()),
+    [getAccessTokenSilently],
+  )
   const [items, setItems] = useState<Bookmark[]>([])
   const [collections, setCollections] = useState<CollectionOption[]>([])
   const [filter, setFilter] = useState('all')
@@ -111,10 +107,21 @@ export default function BookmarksPage() {
         </Button>
       </Stack>
 
-      {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
+      {error && (
+        <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />
+      )}
 
-      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search}>
-        <TextField label="Filter collection" onChange={(event) => setFilter(event.target.value)} select value={filter}>
+      <BookmarkSearchToolbar
+        onChange={setSearch}
+        onSubmit={() => setSubmittedSearch(search)}
+        value={search}
+      >
+        <TextField
+          label="Filter collection"
+          onChange={(event) => setFilter(event.target.value)}
+          select
+          value={filter}
+        >
           <MenuItem value="all">All bookmarks</MenuItem>
           <MenuItem value="none">Uncategorized</MenuItem>
           {collections.map((collection) => (

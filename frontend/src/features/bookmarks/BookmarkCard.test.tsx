@@ -3,7 +3,15 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import BookmarkCard from './BookmarkCard'
 
-const bookmark = { id: 'b1', title: 'MUI', url: 'https://mui.com', notes: 'Material UI components', collectionId: 'c1', createdAt: '2026-07-28T00:00:00.000Z', updatedAt: '2026-07-28T00:00:00.000Z' }
+const bookmark = {
+  id: 'b1',
+  title: 'MUI',
+  url: 'https://mui.com',
+  notes: 'Material UI components',
+  collectionId: 'c1',
+  createdAt: '2026-07-28T00:00:00.000Z',
+  updatedAt: '2026-07-28T00:00:00.000Z',
+}
 
 afterEach(cleanup)
 

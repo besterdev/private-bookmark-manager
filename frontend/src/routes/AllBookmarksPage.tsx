@@ -13,7 +13,10 @@ import { createApiClient } from '../lib/api-client'
 
 export default function AllBookmarksPage() {
   const { getAccessTokenSilently } = useAuth0()
-  const api = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+  const api = useMemo(
+    () => createApiClient(() => getAccessTokenSilently()),
+    [getAccessTokenSilently],
+  )
   const [items, setItems] = useState<Bookmark[]>([])
   const [collections, setCollections] = useState<CollectionOption[]>([])
   const [search, setSearch] = useState('')
@@ -51,9 +54,13 @@ export default function AllBookmarksPage() {
     [collections],
   )
   const groups = useMemo(
-    () => collections
-      .map((collection) => ({ collection, items: items.filter((item) => item.collectionId === collection.id) }))
-      .filter((group) => group.items.length > 0),
+    () =>
+      collections
+        .map((collection) => ({
+          collection,
+          items: items.filter((item) => item.collectionId === collection.id),
+        }))
+        .filter((group) => group.items.length > 0),
     [collections, items],
   )
   const uncategorised = useMemo(() => items.filter((item) => item.collectionId === null), [items])
@@ -78,31 +85,55 @@ export default function AllBookmarksPage() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography component="h2" variant="h4">All bookmarks</Typography>
+        <Typography component="h2" variant="h4">
+          All bookmarks
+        </Typography>
         <Typography color="text.secondary">Browse every saved link by collection.</Typography>
       </Box>
 
-      {error && <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />}
+      {error && (
+        <ErrorState message={error.message} onRetry={error.retry ? () => void load() : undefined} />
+      )}
 
-      <BookmarkSearchToolbar onChange={setSearch} onSubmit={() => setSubmittedSearch(search)} value={search} />
+      <BookmarkSearchToolbar
+        onChange={setSearch}
+        onSubmit={() => setSubmittedSearch(search)}
+        value={search}
+      />
 
       {items.length === 0 ? (
         <EmptyState
-          description={submittedSearch.trim() ? 'No bookmarks match your search.' : 'Save a link to start your bookmark library.'}
+          description={
+            submittedSearch.trim()
+              ? 'No bookmarks match your search.'
+              : 'Save a link to start your bookmark library.'
+          }
           title={submittedSearch.trim() ? 'No matching bookmarks' : 'No bookmarks yet'}
         />
       ) : (
         <Stack spacing={4}>
           {groups.map(({ collection, items: groupItems }) => (
             <Stack component="section" key={collection.id} spacing={1.5}>
-              <Typography component="h3" variant="h5">{collection.name}</Typography>
-              <BookmarkCardGrid collectionNameById={collectionNameById} items={groupItems} onDelete={setBookmarkToDelete} />
+              <Typography component="h3" variant="h5">
+                {collection.name}
+              </Typography>
+              <BookmarkCardGrid
+                collectionNameById={collectionNameById}
+                items={groupItems}
+                onDelete={setBookmarkToDelete}
+              />
             </Stack>
           ))}
           {uncategorised.length > 0 && (
             <Stack component="section" spacing={1.5}>
-              <Typography component="h3" variant="h5">Uncategorised</Typography>
-              <BookmarkCardGrid collectionNameById={collectionNameById} items={uncategorised} onDelete={setBookmarkToDelete} />
+              <Typography component="h3" variant="h5">
+                Uncategorised
+              </Typography>
+              <BookmarkCardGrid
+                collectionNameById={collectionNameById}
+                items={uncategorised}
+                onDelete={setBookmarkToDelete}
+              />
             </Stack>
           )}
         </Stack>

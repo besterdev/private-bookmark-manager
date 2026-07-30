@@ -60,7 +60,10 @@ it('deletes a bookmark after confirmation', async () => {
 
   render(<BookmarksPage />)
 
-  expect(await screen.findByRole('link', { name: /mui/i })).toHaveAttribute('href', 'https://mui.com')
+  expect(await screen.findByRole('link', { name: /mui/i })).toHaveAttribute(
+    'href',
+    'https://mui.com',
+  )
   fireEvent.click(screen.getByRole('button', { name: 'Delete bookmark' }))
 
   expect(screen.getByRole('heading', { name: 'Delete bookmark?' })).toBeVisible()
@@ -115,9 +118,7 @@ it('clears a previous delete error after a successful retry', async () => {
       },
     ])
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
-  api.delete
-    .mockRejectedValueOnce(new Error('first attempt failed'))
-    .mockReturnValueOnce(retry)
+  api.delete.mockRejectedValueOnce(new Error('first attempt failed')).mockReturnValueOnce(retry)
 
   render(<BookmarksPage />)
 
@@ -136,9 +137,7 @@ it('clears a previous delete error after a successful retry', async () => {
 })
 
 it('retries a failed bookmark request', async () => {
-  api.get
-    .mockRejectedValueOnce(new Error(sensitive))
-    .mockResolvedValue([])
+  api.get.mockRejectedValueOnce(new Error(sensitive)).mockResolvedValue([])
 
   render(<BookmarksPage />)
 
@@ -179,7 +178,9 @@ it('requests the submitted query with the selected collection filter', async () 
   fireEvent.change(screen.getByLabelText('Search bookmarks'), { target: { value: ' react ' } })
   fireEvent.submit(screen.getByRole('search'))
 
-  await waitFor(() => expect(api.get).toHaveBeenCalledWith('/bookmarks?collectionId=collection-1&q=react'))
+  await waitFor(() =>
+    expect(api.get).toHaveBeenCalledWith('/bookmarks?collectionId=collection-1&q=react'),
+  )
 })
 
 it('reloads through the latest API client after rerender', async () => {

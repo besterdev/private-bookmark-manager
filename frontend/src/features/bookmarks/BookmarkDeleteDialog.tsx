@@ -8,14 +8,20 @@ interface BookmarkDeleteDialogProps {
   onConfirm: () => void
 }
 
-export default function BookmarkDeleteDialog({ bookmark, onCancel, onConfirm }: BookmarkDeleteDialogProps) {
+export default function BookmarkDeleteDialog({
+  bookmark,
+  onCancel,
+  onConfirm,
+}: BookmarkDeleteDialogProps) {
   return (
     <Dialog onClose={onCancel} open={Boolean(bookmark)}>
       <DialogTitle>Delete bookmark?</DialogTitle>
       <DialogContent>This cannot be undone.</DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
-        <Button color="error" onClick={onConfirm}>Delete</Button>
+        <Button color="error" onClick={onConfirm}>
+          Delete
+        </Button>
       </DialogActions>
     </Dialog>
   )

