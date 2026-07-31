@@ -3,11 +3,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 const axiosState = vi.hoisted(() => ({
   requestInterceptor: undefined as
-    | ((config: { headers: AxiosHeaders }) => Promise<{ headers: AxiosHeaders }>)
-    | undefined,
-  responseRejection: undefined as
-    | ((cause: unknown) => Promise<never>)
-    | undefined,
+    ((config: { headers: AxiosHeaders }) => Promise<{ headers: AxiosHeaders }>) | undefined,
+  responseRejection: undefined as ((cause: unknown) => Promise<never>) | undefined,
   get: vi.fn(),
   post: vi.fn(),
   delete: vi.fn(),
@@ -83,8 +80,10 @@ it('returns typed response data for GET and POST and resolves DELETE with no con
   axiosState.delete.mockResolvedValue({})
 
   await expect(client.get('/me')).resolves.toEqual({ id: 'auth0|user-a' })
-  await expect(client.post('/collections', { name: 'Work' }))
-    .resolves.toEqual({ id: 'collection-1', name: 'Work' })
+  await expect(client.post('/collections', { name: 'Work' })).resolves.toEqual({
+    id: 'collection-1',
+    name: 'Work',
+  })
   await expect(client.delete('/collections/collection-1')).resolves.toBeUndefined()
 
   expect(axiosState.get).toHaveBeenCalledWith('/me')
@@ -95,24 +94,30 @@ it('returns typed response data for GET and POST and resolves DELETE with no con
 it('normalizes Axios HTTP and network failures as ApiError', async () => {
   createApiClient(vi.fn().mockResolvedValue('access-token'), 'http://localhost:3001')
 
-  await expect(applyResponseRejection({
-    isAxiosError: true,
-    response: { status: 401, data: { message: 'Unauthorized' } },
-  })).rejects.toMatchObject({ name: 'ApiError', status: 401 })
+  await expect(
+    applyResponseRejection({
+      isAxiosError: true,
+      response: { status: 401, data: { message: 'Unauthorized' } },
+    }),
+  ).rejects.toMatchObject({ name: 'ApiError', status: 401 })
 
-  await expect(applyResponseRejection({
-    isAxiosError: true,
-    response: { status: 400, data: { message: ['Title is required'] } },
-  })).rejects.toMatchObject({
+  await expect(
+    applyResponseRejection({
+      isAxiosError: true,
+      response: { status: 400, data: { message: ['Title is required'] } },
+    }),
+  ).rejects.toMatchObject({
     name: 'ApiError',
     status: 400,
     message: 'Request failed (400)',
   })
 
-  await expect(applyResponseRejection({
-    isAxiosError: true,
-    message: 'Network Error',
-  })).rejects.toMatchObject({
+  await expect(
+    applyResponseRejection({
+      isAxiosError: true,
+      message: 'Network Error',
+    }),
+  ).rejects.toMatchObject({
     name: 'ApiError',
     status: 0,
     message: 'Network request failed',

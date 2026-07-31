@@ -1,4 +1,33 @@
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { Button, Link, Paper, Stack, Typography } from '@mui/material'
 import type { Bookmark } from './types'
-export default function BookmarkDetail({ bookmark, onDelete }: { bookmark?: Bookmark; onDelete: () => void }) { if (!bookmark) return <Paper sx={{ p: 3 }} variant="outlined"><Typography color="text.secondary">Select a bookmark to view details.</Typography></Paper>; return <Paper sx={{ p: 3 }} variant="outlined"><Stack spacing={2}><Typography component="h2" variant="h4">{bookmark.title}</Typography><Link href={bookmark.url} rel="noreferrer" target="_blank">Open link <OpenInNewIcon fontSize="inherit" /></Link>{bookmark.notes && <Typography>{bookmark.notes}</Typography>}<Button color="error" onClick={onDelete} sx={{ alignSelf: 'start' }}>Delete bookmark</Button></Stack></Paper> }
+export default function BookmarkDetail({
+  bookmark,
+  onDelete,
+}: {
+  bookmark?: Bookmark
+  onDelete: () => void
+}) {
+  if (!bookmark)
+    return (
+      <Paper sx={{ p: 3 }} variant="outlined">
+        <Typography color="text.secondary">Select a bookmark to view details.</Typography>
+      </Paper>
+    )
+  return (
+    <Paper sx={{ p: 3 }} variant="outlined">
+      <Stack spacing={2}>
+        <Typography component="h2" variant="h4">
+          {bookmark.title}
+        </Typography>
+        <Link href={bookmark.url} rel="noreferrer" target="_blank">
+          Open link <OpenInNewIcon fontSize="inherit" />
+        </Link>
+        {bookmark.notes && <Typography>{bookmark.notes}</Typography>}
+        <Button color="error" onClick={onDelete} sx={{ alignSelf: 'start' }}>
+          Delete bookmark
+        </Button>
+      </Stack>
+    </Paper>
+  )
+}

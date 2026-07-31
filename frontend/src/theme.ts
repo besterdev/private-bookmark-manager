@@ -1,8 +1,8 @@
 import { createTheme, type Shadows, type Theme } from '@mui/material'
 
-const shadows: Shadows = Array.from({ length: 25 }, (_, index) => (
-  index === 0 ? 'none' : '0 4px 12px rgba(31, 41, 55, 0.08)'
-)) as Shadows
+const shadows: Shadows = Array.from({ length: 25 }, (_, index) =>
+  index === 0 ? 'none' : '0 4px 12px rgba(31, 41, 55, 0.08)',
+) as Shadows
 
 export const appTheme: Theme = createTheme({
   palette: {
@@ -42,7 +42,10 @@ export const appTheme: Theme = createTheme({
           border: '1px solid #E5E7EB',
           boxShadow: '0 4px 12px rgba(31, 41, 55, 0.08)',
           transition: 'box-shadow 160ms ease, transform 160ms ease',
-          '&:hover': { boxShadow: '0 8px 20px rgba(31, 41, 55, 0.12)', transform: 'translateY(-2px)' },
+          '&:hover': {
+            boxShadow: '0 8px 20px rgba(31, 41, 55, 0.12)',
+            transform: 'translateY(-2px)',
+          },
         },
       },
     },

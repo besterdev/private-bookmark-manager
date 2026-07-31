@@ -25,7 +25,11 @@ beforeEach(() => {
 })
 
 it('shows a sign-in action while unauthenticated', () => {
-  render(<AuthGate><div>Private content</div></AuthGate>)
+  render(
+    <AuthGate>
+      <div>Private content</div>
+    </AuthGate>,
+  )
 
   expect(screen.getByRole('button', { name: 'Sign in' })).toBeVisible()
   expect(screen.queryByText('Private content')).not.toBeInTheDocument()
@@ -34,7 +38,11 @@ it('shows a sign-in action while unauthenticated', () => {
 it('shows a loading state while Auth0 initializes', () => {
   useAuth0.mockReturnValue({ isLoading: true })
 
-  render(<AuthGate><div>Private content</div></AuthGate>)
+  render(
+    <AuthGate>
+      <div>Private content</div>
+    </AuthGate>,
+  )
 
   expect(screen.getByText('Signing you in…')).toBeVisible()
 })
@@ -48,7 +56,11 @@ it('retries API access verification after a failure', async () => {
     getAccessTokenSilently: vi.fn().mockResolvedValue('access-token'),
   })
 
-  render(<AuthGate><div>Private content</div></AuthGate>)
+  render(
+    <AuthGate>
+      <div>Private content</div>
+    </AuthGate>,
+  )
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to verify API access')
   expect(screen.queryByText(sensitive)).not.toBeInTheDocument()

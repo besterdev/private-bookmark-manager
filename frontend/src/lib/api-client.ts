@@ -35,11 +35,12 @@ export function createApiClient(
 
       const error = cause as AxiosError<{ message?: unknown }>
       const status = error.response?.status ?? 0
-      const message = typeof error.response?.data?.message === 'string'
-        ? error.response.data.message
-        : status === 0
-          ? 'Network request failed'
-          : `Request failed (${status})`
+      const message =
+        typeof error.response?.data?.message === 'string'
+          ? error.response.data.message
+          : status === 0
+            ? 'Network request failed'
+            : `Request failed (${status})`
 
       return Promise.reject(new ApiError(status, message))
     },

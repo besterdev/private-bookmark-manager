@@ -10,5 +10,7 @@ it('validates title and URL before submitting a trimmed bookmark', () => {
   fireEvent.change(screen.getByLabelText('Title'), { target: { value: '  Docs  ' } })
   fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'https://example.com' } })
   fireEvent.click(screen.getByRole('button', { name: 'Save bookmark' }))
-  expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ title: 'Docs', url: 'https://example.com' }))
+  expect(onSubmit).toHaveBeenCalledWith(
+    expect.objectContaining({ title: 'Docs', url: 'https://example.com' }),
+  )
 })

@@ -34,7 +34,10 @@ it('groups bookmarks by collection and renders uncategorised bookmarks', async (
   expect(screen.queryByRole('heading', { name: 'Engineering' })).not.toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'Uncategorised' })).toBeVisible()
   expect(screen.getByRole('link', { name: /MUI/i })).toHaveAttribute('href', 'https://example.com')
-  expect(screen.getByRole('link', { name: /React/i })).toHaveAttribute('href', 'https://example.com')
+  expect(screen.getByRole('link', { name: /React/i })).toHaveAttribute(
+    'href',
+    'https://example.com',
+  )
 })
 
 it('searches all bookmarks with the submitted term', async () => {
@@ -65,13 +68,17 @@ it('shows a safe message when loading bookmarks fails', async () => {
   render(<AllBookmarksPage />)
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load bookmarks')
-  expect(screen.queryByText('Database connection failed: password=super-secret')).not.toBeInTheDocument()
+  expect(
+    screen.queryByText('Database connection failed: password=super-secret'),
+  ).not.toBeInTheDocument()
 })
 
 it('deletes a bookmark after confirmation and removes its card', async () => {
   api.get
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
-    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
+    .mockResolvedValueOnce([
+      bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' }),
+    ])
   api.delete.mockResolvedValueOnce(undefined)
 
   render(<AllBookmarksPage />)
@@ -86,7 +93,9 @@ it('deletes a bookmark after confirmation and removes its card', async () => {
 it('keeps the bookmark when deletion fails and shows a safe non-retryable error', async () => {
   api.get
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
-    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
+    .mockResolvedValueOnce([
+      bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' }),
+    ])
   api.delete.mockRejectedValueOnce(new Error('Internal SQL error: ownerId=auth0|victim'))
 
   render(<AllBookmarksPage />)
@@ -107,10 +116,10 @@ it('clears a previous delete error after a successful retry', async () => {
   })
   api.get
     .mockResolvedValueOnce([{ id: 'collection-1', name: 'Design' }])
-    .mockResolvedValueOnce([bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' })])
-  api.delete
-    .mockRejectedValueOnce(new Error('first attempt failed'))
-    .mockReturnValueOnce(retry)
+    .mockResolvedValueOnce([
+      bookmark({ id: 'bookmark-1', collectionId: 'collection-1', title: 'MUI' }),
+    ])
+  api.delete.mockRejectedValueOnce(new Error('first attempt failed')).mockReturnValueOnce(retry)
 
   render(<AllBookmarksPage />)
 
@@ -128,7 +137,9 @@ it('clears a previous delete error after a successful retry', async () => {
   await waitFor(() => expect(screen.queryByRole('link', { name: /MUI/i })).not.toBeInTheDocument())
 })
 
-function bookmark(overrides: Partial<{ id: string; collectionId: string | null; title: string }> = {}) {
+function bookmark(
+  overrides: Partial<{ id: string; collectionId: string | null; title: string }> = {},
+) {
   return {
     id: 'bookmark-default',
     title: 'Bookmark',

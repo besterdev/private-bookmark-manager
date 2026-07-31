@@ -15,13 +15,7 @@ const bookmark = {
 afterEach(cleanup)
 
 it('shows an empty state when there are no bookmarks', () => {
-  render(
-    <BookmarkCardGrid
-      collectionNameById={{}}
-      items={[]}
-      onDelete={vi.fn()}
-    />,
-  )
+  render(<BookmarkCardGrid collectionNameById={{}} items={[]} onDelete={vi.fn()} />)
 
   expect(screen.getByText('No bookmarks found.')).toBeVisible()
 })

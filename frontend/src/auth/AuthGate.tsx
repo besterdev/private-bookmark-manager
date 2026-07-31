@@ -11,7 +11,8 @@ interface AuthGateProps {
 }
 
 export default function AuthGate({ children }: AuthGateProps) {
-  const { isLoading, error, isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0()
+  const { isLoading, error, isAuthenticated, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0()
   const [apiReady, setApiReady] = useState(false)
   const [apiError, setApiError] = useState<string>()
   const [retry, setRetry] = useState(0)
@@ -26,24 +27,61 @@ export default function AuthGate({ children }: AuthGateProps) {
     let active = true
     const api = createApiClient(() => getAccessTokenSilently())
 
-    void api.get('/me')
-      .then(() => { if (active) { setApiError(undefined); setApiReady(true) } })
-      .catch(() => { if (active) setApiError('Unable to verify API access') })
+    void api
+      .get('/me')
+      .then(() => {
+        if (active) {
+          setApiError(undefined)
+          setApiReady(true)
+        }
+      })
+      .catch(() => {
+        if (active) setApiError('Unable to verify API access')
+      })
 
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [getAccessTokenSilently, isAuthenticated, retry])
 
   if (isLoading) {
     return <LoadingState label="Signing you in…" minHeight="100vh" />
   }
 
-  if (error) return <Box sx={{ p: 3 }}><ErrorState message={error.message} /></Box>
+  if (error)
+    return (
+      <Box sx={{ p: 3 }}>
+        <ErrorState message={error.message} />
+      </Box>
+    )
 
   if (!isAuthenticated) {
-    return <Box sx={{ display: 'grid', minHeight: '100vh', placeItems: 'center', p: 3 }}><Stack spacing={2} sx={{ alignItems: 'center', maxWidth: 360, textAlign: 'center' }}><Typography component="h1" variant="h4">Private Bookmark Manager</Typography><Typography color="text.secondary">Save and organize links that only you can access.</Typography><Button variant="contained" onClick={() => loginWithRedirect({ appState: { returnTo: window.location.pathname } })}>Sign in</Button></Stack></Box>
+    return (
+      <Box sx={{ display: 'grid', minHeight: '100vh', placeItems: 'center', p: 3 }}>
+        <Stack spacing={2} sx={{ alignItems: 'center', maxWidth: 360, textAlign: 'center' }}>
+          <Typography component="h1" variant="h4">
+            Private Bookmark Manager
+          </Typography>
+          <Typography color="text.secondary">
+            Save and organize links that only you can access.
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => loginWithRedirect({ appState: { returnTo: window.location.pathname } })}
+          >
+            Sign in
+          </Button>
+        </Stack>
+      </Box>
+    )
   }
 
-  if (apiError) return <Box sx={{ p: 3 }}><ErrorState message={apiError} onRetry={() => setRetry((value) => value + 1)} /></Box>
+  if (apiError)
+    return (
+      <Box sx={{ p: 3 }}>
+        <ErrorState message={apiError} onRetry={() => setRetry((value) => value + 1)} />
+      </Box>
+    )
 
   if (!apiReady) {
     return <LoadingState label="Verifying API access…" minHeight="100vh" />
